@@ -11,8 +11,6 @@ const PORT = process.env.PORT || 5050;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://127.0.0.1:5500";
 const NODE_ENV = process.env.NODE_ENV || "development";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const allowedOrigins =
   NODE_ENV === "production"
     ? [FRONTEND_URL]
@@ -50,8 +48,6 @@ const contactLimiter = rateLimit({
   },
 });
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -66,7 +62,8 @@ app.post("/api/contact", contactLimiter, async (req, res) => {
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and message are required.",     });
+        message: "Name, email, and message are required.",
+      });
     }
 
     if (!process.env.RESEND_API_KEY) {
@@ -85,10 +82,11 @@ app.post("/api/contact", contactLimiter, async (req, res) => {
       });
     }
 
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
     const result = await resend.emails.send({
       from:
-        process.env.FROM_EMAIL ||
-        "Portfolio Contact <contact@amirghorbani.dev>",
+        process.env.FROM_EMAIL || "Portfolio Contact <onboarding@resend.dev>",
       to: [process.env.RECEIVER_EMAIL],
       replyTo: email,
       subject: `New portfolio contact from ${name}`,
