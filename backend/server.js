@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
-const { Resend } = require("resend");
+//const { Resend } = require("resend");
 
 const app = express();
 
@@ -48,7 +48,7 @@ const contactLimiter = rateLimit({
   },
 });
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+//const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.get("/", (req, res) => {
   res.json({
