@@ -83,7 +83,7 @@ function checkEmailConfig() {
 
 const transporter = nodemailer.createTransport({
   host: "smtp.mail.me.com",
-  port: 587,
+  port: 465,
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
