@@ -84,7 +84,10 @@ function checkEmailConfig() {
 const transporter = nodemailer.createTransport({
   host: "smtp.mail.me.com",
   port: 465,
-  secure: false,
+  secure: true,
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 15000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
