@@ -1,20 +1,15 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const nodemailer = require("nodemailer");
 const rateLimit = require("express-rate-limit");
-
-dotenv.config();
+const { Resend } = require("resend");
 
 const app = express();
 
 const PORT = process.env.PORT || 5050;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://127.0.0.1:5500";
 const NODE_ENV = process.env.NODE_ENV || "development";
-
-app.set("trust proxy", 1);
-
-app.use(express.json({ limit: "10kb" }));
 
 const allowedOrigins =
   NODE_ENV === "production"
@@ -30,89 +25,84 @@ const allowedOrigins =
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow tools like Postman/curl with no Origin header
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
+      // Allow curl/Postman/no-origin requests, plus explicit allowed origins.
+      if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new Error("CORS policy does not allow this origin."));
     },
-    methods: ["POST", "GET", "OPTIONS"],
+    methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type"],
   })
 );
+
+app.use(express.json());
 
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: {
     success: false,
-    message: "Too many messages sent. Please try again later.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function sanitizeInput(value) {
-  if (typeof value !== "string") return "";
-  return value.trim();
-}
-
-function escapeHtml(value) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function checkEmailConfig() {
-  return (
-    process.env.EMAIL_USER &&
-    process.env.EMAIL_PASS &&
-    process.env.RECEIVER_EMAIL
-  );
-}
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.mail.me.com",
-  port: 465,
-  secure: true,
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 15000,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    message: "Too many requests. Please try again later.",
   },
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.get("/", (req, res) => {
-  res.status(200).json({
+  res.json({
     success: true,
-    message: "Portfolio contact API is running.",
+    message: "Portfolio backend is running.",
   });
 });
+app.get("/api/debug-email-connection", async (req, res) => {
+  try {
+    const nodemailer = require("nodemailer");
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: "ok",
-  });
+    const transporter = nodemailer.createTransport({
+      host: "smtp.mail.me.com",
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.verify();
+
+    return res.json({
+      success: true,
+      message: "SMTP connection and authentication succeeded.",
+    });
+  } catch (error) {
+    console.error("SMTP debug error:", {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+    });
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+    });
+  }
 });
 
 app.post("/api/contact", contactLimiter, async (req, res) => {
   try {
-    const name = sanitizeInput(req.body.name);
-    const email = sanitizeInput(req.body.email);
-    const message = sanitizeInput(req.body.message);
+    const { name, email, message } = req.body;
 
     if (!name || !email || !message) {
       return res.status(400).json({
@@ -121,78 +111,65 @@ app.post("/api/contact", contactLimiter, async (req, res) => {
       });
     }
 
-    if (name.length < 2 || name.length > 80) {
-      return res.status(400).json({
-        success: false,
-        message: "Name must be between 2 and 80 characters.",
-      });
-    }
-
-    if (!isValidEmail(email) || email.length > 120) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid email address.",
-      });
-    }
-
-    if (message.length < 10 || message.length > 2000) {
-      return res.status(400).json({
-        success: false,
-        message: "Message must be between 10 and 2000 characters.",
-      });
-    }
-
-    if (!checkEmailConfig()) {
-      console.error("Missing email environment variables.");
-
+    if (!process.env.RESEND_API_KEY) {
+      console.error("Missing RESEND_API_KEY environment variable.");
       return res.status(500).json({
         success: false,
-        message: "Server email configuration is missing.",
+        message: "Email service is not configured.",
       });
     }
 
-    const safeName = escapeHtml(name);
-    const safeEmail = escapeHtml(email);
-    const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
+    if (!process.env.RECEIVER_EMAIL) {
+      console.error("Missing RECEIVER_EMAIL environment variable.");
+      return res.status(500).json({
+        success: false,
+        message: "Email receiver is not configured.",
+      });
+    }
 
-    const mailOptions = {
-      from: `Portfolio Contact Form <${process.env.EMAIL_USER}>`,
-      to: process.env.RECEIVER_EMAIL,
+    const result = await resend.emails.send({
+      from:
+        process.env.FROM_EMAIL ||
+        "Portfolio Contact <contact@amirghorbani.dev>",
+      to: [process.env.RECEIVER_EMAIL],
       replyTo: email,
-      subject: `New portfolio message from ${name}`,
+      subject: `New portfolio contact from ${name}`,
       text: `
-You received a new message from your portfolio contact form.
-
-Name:
-${name}
-
-Email:
-${email}
+Name: ${name}
+Email: ${email}
 
 Message:
 ${message}
       `,
       html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>New Portfolio Contact Message</h2>
-
-          <p><strong>Name:</strong> ${safeName}</p>
-          <p><strong>Email:</strong> ${safeEmail}</p>
-
-          <p><strong>Message:</strong></p>
-          <p>${safeMessage}</p>
-        </div>
+        <h2>New portfolio contact form submission</h2>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Message:</strong></p>
+        <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (result.error) {
+      console.error("Resend error:", result.error);
+      return res.status(500).json({
+        success: false,
+        message: "Something went wrong. Please try again later.",
+      });
+    }
+
+    console.log("Email sent successfully:", result.data);
 
     return res.status(200).json({
       success: true,
       message: "Message sent successfully.",
     });
   } catch (error) {
-    console.error("Contact form error:", error);
+    console.error("Contact form error:", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    });
 
     return res.status(500).json({
       success: false,
@@ -201,22 +178,16 @@ ${message}
   }
 });
 
-app.use((err, req, res, next) => {
-  if (err.message === "Not allowed by CORS") {
-    return res.status(403).json({
-      success: false,
-      message: "CORS policy does not allow this origin.",
-    });
-  }
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-  console.error("Unhandled error:", err);
-
-  return res.status(500).json({
-    success: false,
-    message: "Internal server error.",
-  });
-});
-
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
 });
