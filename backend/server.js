@@ -56,49 +56,6 @@ app.get("/", (req, res) => {
     message: "Portfolio backend is running.",
   });
 });
-app.get("/api/debug-email-connection", async (req, res) => {
-  try {
-    const nodemailer = require("nodemailer");
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp.mail.me.com",
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 15000,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.verify();
-
-    return res.json({
-      success: true,
-      message: "SMTP connection and authentication succeeded.",
-    });
-  } catch (error) {
-    console.error("SMTP debug error:", {
-      message: error.message,
-      code: error.code,
-      command: error.command,
-      response: error.response,
-      responseCode: error.responseCode,
-    });
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-      code: error.code,
-      command: error.command,
-      response: error.response,
-      responseCode: error.responseCode,
-    });
-  }
-});
 
 app.post("/api/contact", contactLimiter, async (req, res) => {
   try {
@@ -107,8 +64,7 @@ app.post("/api/contact", contactLimiter, async (req, res) => {
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and message are required.",
-      });
+        message: "Name, email, and message are required.",     });
     }
 
     if (!process.env.RESEND_API_KEY) {
