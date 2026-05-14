@@ -3,13 +3,15 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
-//const { Resend } = require("resend");
+const { Resend } = require("resend");
 
 const app = express();
 
 const PORT = process.env.PORT || 5050;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://127.0.0.1:5500";
 const NODE_ENV = process.env.NODE_ENV || "development";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const allowedOrigins =
   NODE_ENV === "production"
@@ -48,7 +50,7 @@ const contactLimiter = rateLimit({
   },
 });
 
-//const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.get("/", (req, res) => {
   res.json({
