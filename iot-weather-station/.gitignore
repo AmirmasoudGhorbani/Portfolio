@@ -1,0 +1,18 @@
+# local config with broker credentials
+firmware/config.json
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/
+
+# node-red runtime
+.node-red/
+node_modules/

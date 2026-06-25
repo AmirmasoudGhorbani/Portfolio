@@ -1,0 +1,5 @@
+paho-mqtt>=1.6,<2.0
+
+# Required only for real hardware (not needed for --simulate):
+# adafruit-circuitpython-dht>=3.7
+# pms5003>=1.0

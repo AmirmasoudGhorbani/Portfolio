@@ -178,7 +178,7 @@
     io.observe(wrap);
   }
 
-  /* ---------- Contact form (backend + mailto fallback) ---------- */
+  /* ---------- Contact form (Web3Forms) ---------- */
   function initContactForm() {
     const form = document.getElementById("contact-form");
     if (!form) return;
@@ -197,25 +197,21 @@
         return;
       }
       try {
-        setStatus("Sending… (first send of the day can take a few seconds)", "");
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 8000);
-        const res = await fetch("https://portfolio-backend-dtpt.onrender.com/api/contact", {
+        setStatus("Sending…", "");
+        const formData = new FormData(form);
+        const res = await fetch("https://api.web3forms.com/submit", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, message }),
-          signal: ctrl.signal,
+          body: formData,
         });
-        clearTimeout(timer);
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.message || "Failed to send message.");
-        setStatus("Message sent. I'll be in touch soon!", "success");
-        form.reset();
+        const data = await res.json();
+        if (data.success) {
+          setStatus("Message sent. I'll be in touch soon!", "success");
+          form.reset();
+        } else {
+          throw new Error(data.message || "Failed to send message.");
+        }
       } catch (err) {
-        const subject = encodeURIComponent("Portfolio enquiry from " + name);
-        const body = encodeURIComponent(message + "\n\n" + name + " (" + email + ")");
-        setStatus("This is taking too long to reach the server. Opening your email app so you can send it directly.", "error");
-        window.location.href = "mailto:amirmasoud.gh@hotmail.com?subject=" + subject + "&body=" + body;
+        setStatus(err.message || "Something went wrong. Please try again.", "error");
       }
     });
   }

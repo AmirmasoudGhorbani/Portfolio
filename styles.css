@@ -604,6 +604,7 @@ main { position: relative; z-index: 1; }
   color: var(--text);
 }
 .contact-lead { font-size: 17px; line-height: 1.72; color: var(--text-dim); margin: 0 0 30px; max-width: 480px; }
+.contact-social-rail { display: flex; flex-wrap: wrap; gap: 12px; }
 
 .terminal {
   border-radius: 14px;
@@ -653,7 +654,7 @@ main { position: relative; z-index: 1; }
 .form-status.is-success { color: #5fcf80; }
 
 /* ---------- Footer ---------- */
-.site-footer { border-top: 1px solid var(--line-soft); background: rgba(7,7,7,.72); }
+.site-footer { position: relative; z-index: 1; border-top: 1px solid var(--line-soft); background: rgba(7,7,7,.72); }
 .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 56px var(--pad-x) 36px; }
 .footer-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 36px; padding-bottom: 36px; border-bottom: 1px solid var(--line-soft); }
 .footer-brand { max-width: 360px; }

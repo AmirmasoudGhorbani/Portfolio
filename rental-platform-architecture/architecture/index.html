@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rental Platform Architecture — Amir Ghorbani</title>
+<link rel="icon" href="../../assets/ag-logo-web.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header id="site-header">
+  <div class="header-left">
+    <a href="https://amirghorbani.dev" class="back-link" aria-label="Back to portfolio">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>
+    <div class="header-brand">
+      <span class="header-eyebrow">Cloud · System Design</span>
+      <h1>Scalable Rental Platform</h1>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="btn btn--booking" id="play"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l14 8-14 8z" fill="currentColor" stroke="none"/></svg>Trace a booking</button>
+    <button class="btn btn--listing" id="playHost"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l14 8-14 8z" fill="currentColor" stroke="none"/></svg>Post a listing</button>
+    <span class="toolbar-sep"></span>
+    <button class="btn" id="readBtn" data-path="read"><span class="sw sw--read"></span>Read path</button>
+    <button class="btn" id="writeBtn" data-path="write"><span class="sw sw--write"></span>Write path</button>
+    <button class="btn btn--reset" id="reset"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+  </div>
+</header>
+
+<div id="wrap">
+  <div id="fit">
+    <div id="stage">
+      <svg id="wires"></svg>
+      <div id="token"></div>
+    </div>
+  </div>
+</div>
+
+<div class="diagram-legend">
+  <div class="legend" id="legend"></div>
+</div>
+
+<section class="about-section">
+  <div class="about-inner">
+
+    <div class="about-head">
+      <span class="about-eyebrow">About This Architecture</span>
+      <h2 class="about-title">An Airbnb-style rental platform designed for independent scaling of reads and writes.</h2>
+      <p class="about-lead">Travelers browse and book rooms through a fast read path served from caches, a search index, and read replicas. Landlords publish listings through a write path buffered by a durable queue — so the database is never overwhelmed by spikes.</p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card__icon about-card__icon--read">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+        </div>
+        <h3>Read Path</h3>
+        <p>Guest traffic hits Route 53, ALB, and stateless microservices that query Elasticsearch and read replicas. The primary database is never touched by browse requests — search stays fast under load.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card__icon about-card__icon--write">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="4" height="8" rx="1"/><rect x="8.5" y="8" width="4" height="8" rx="1"/><rect x="14" y="8" width="4" height="8" rx="1"/><path d="M20 9l2 3-2 3"/></svg>
+        </div>
+        <h3>Write Path</h3>
+        <p>The Host Service enqueues changes to SQS and returns immediately. The Update Service drains the queue, writes to the primary DB, and re-indexes Elasticsearch — turning bursty writes into a steady stream.</p>
+      </div>
+      <div class="about-card">
+        <div class="about-card__icon about-card__icon--scale">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3>Why It Scales</h3>
+        <p>Every service tier is stateless behind the ALB — Auto Scaling groups add or remove instances freely. The queue absorbs write bursts, Elasticsearch scales reads separately from the DB, and CloudFront serves media from edge POPs.</p>
+      </div>
+    </div>
+
+    <div class="tips-section">
+      <h3 class="tips-title">Design Decisions</h3>
+      <div class="tips-grid">
+        <div class="tip-item">
+          <span class="tip-num">01</span>
+          <div>
+            <h4>Microservices over monolith</h4>
+            <p>Each domain (view, guest, payment, search, host) has different load profiles. Separating them lets each scale and deploy independently.</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-num">02</span>
+          <div>
+            <h4>Queue-buffered writes</h4>
+            <p>SQS decouples the Host Service from the database and search index. Failures retry automatically; poison messages land in a dead-letter queue.</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-num">03</span>
+          <div>
+            <h4>Elasticsearch for search</h4>
+            <p>Relational queries can't match the sub-100ms faceted search travelers expect. A dedicated index sharded across nodes handles this without competing with transactional writes.</p>
+          </div>
+        </div>
+        <div class="tip-item">
+          <span class="tip-num">04</span>
+          <div>
+            <h4>CloudFront for media</h4>
+            <p>Listing pages are photo-heavy. Serving images from S3 through CloudFront's global edge POPs cuts latency for distant users and reduces origin load.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div id="scrim"></div>
+<aside id="drawer">
+  <button class="dr-close" id="drClose"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  <div class="dr-head">
+    <span class="dr-cat" id="drCat">CATEGORY</span>
+    <h2 id="drTitle">Title</h2>
+    <div class="dr-svc" id="drSvc">AWS service</div>
+  </div>
+  <div class="dr-body" id="drBody"></div>
+</aside>
+
+<div id="tip"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

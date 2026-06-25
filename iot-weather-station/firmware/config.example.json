@@ -1,0 +1,7 @@
+{
+  "broker_host": "localhost",
+  "broker_port": 1883,
+  "topic": "amir/iot/weather",
+  "interval_seconds": 3,
+  "client_id": "rpi-weather-station"
+}

@@ -1,32 +1,70 @@
 # Amir Ghorbani — Portfolio
 
-Personal portfolio site for **Amir Ghorbani**, an Auckland-based frontend-focused
-software developer blending responsive UI, interactive web experiences, and an
-AI / computer-vision background.
+Personal portfolio website for **Amir Ghorbani**, a frontend-focused software developer based in Auckland, New Zealand.
 
-🔗 **Live:** [amirghorbani.dev](https://amirghorbani.dev/)
+**[amirghorbani.dev](https://amirghorbani.dev)**
 
-## Built with
+![Portfolio Preview](images/portrait-statue-opt.png)
 
-- Hand-written HTML, CSS and vanilla JavaScript — no framework
-- A WebGL animated hero background
-- Responsive, accessible, and deployed as a static site (custom domain via `CNAME`)
+---
 
-## Structure
+## Overview
+
+A single-page portfolio built with vanilla HTML, CSS, and JavaScript. Features interactive WebGL backgrounds (neural noise, 3D particle network, rising embers), scroll-driven reveal animations, and a terminal-styled contact form.
+
+### Featured Projects
+
+| Project | Description | Links |
+|---------|-------------|-------|
+| **AI Strawberry Disease Detection** | Hybrid YOLOv9-DETR model for disease and ripeness detection across 9,000+ images | [Repo](https://github.com/AmirmasoudGhorbani/hybrid-yolov9-detr-strawberry-disease) |
+| **Scalable Rental Platform** | Interactive AWS architecture diagram with animated request tracing and Terraform IaC | [Live Demo](https://amirghorbani.dev/rental-platform-architecture/architecture/) · [Repo](https://github.com/AmirmasoudGhorbani/rental-platform-architecture) |
+| **IoT Weather Monitoring** | Real-time dashboard for Raspberry Pi sensors over MQTT with live Auckland weather data | [Live Demo](https://amirghorbani.dev/iot-weather-station/dashboard/) · [Repo](https://github.com/AmirmasoudGhorbani/iot-weather-station) |
+| **TV Signal Solutions Website** | Responsive marketing site for a local Auckland installation business | [Live Site](https://signal-solution-website.vercel.app) · [Repo](https://github.com/AmirmasoudGhorbani/Signal-Solution-Website) |
+
+## Tech Stack
+
+- **Frontend** — HTML, CSS, JavaScript, React, TypeScript, Next.js
+- **Backend** — Node.js, PostgreSQL, Python
+- **Cloud & DevOps** — AWS, Git, Docker
+- **AI / ML** — PyTorch, YOLOv9, DETR, Computer Vision
+
+## Repository Structure
 
 ```
-index.html      # the page
-styles.css      # styles
-script.js       # interactions + WebGL hero
-assets/ images/ # media
+Portfolio/
+├── index.html                          # main portfolio page
+├── styles.css                          # design system
+├── script.js                           # interactions, WebGL, animations
+├── site.webmanifest
+├── CNAME
+├── assets/
+│   ├── ag-logo-web.png                 # brand logo / favicon
+│   └── Amir-Ghorbani-CV.pdf            # downloadable CV
+├── images/                             # project screenshots and portrait
+├── iot-weather-station/                # IoT dashboard (subpage)
+│   ├── dashboard/
+│   ├── firmware/
+│   └── node-red/
+└── rental-platform-architecture/       # cloud architecture (subpage)
+    ├── architecture/
+    ├── infrastructure/
+    └── docs/adr/
 ```
 
-## Develop
+## Development
 
-Open `index.html` in a browser, or serve the folder:
+No build step required. Open `index.html` in a browser or serve with any static server:
 
 ```bash
-python3 -m http.server 8000
+npx serve .
 ```
 
-© Amir Ghorbani.
+The contact form uses [Web3Forms](https://web3forms.com) — no backend server needed.
+
+## Deployment
+
+Hosted on **GitHub Pages** with a custom domain via the `CNAME` file. Push to `main` to deploy.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

@@ -1,0 +1,97 @@
+[
+  {
+    "id": "tab_weather",
+    "type": "tab",
+    "label": "IoT Weather Station",
+    "disabled": false,
+    "info": "Subscribes to sensor MQTT messages, evaluates alert thresholds, and re-broadcasts to the dashboard over WebSocket."
+  },
+  {
+    "id": "broker_cfg",
+    "type": "mqtt-broker",
+    "name": "Local broker",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "node-red-weather",
+    "keepalive": "60",
+    "cleansession": true
+  },
+  {
+    "id": "mqtt_in",
+    "type": "mqtt in",
+    "z": "tab_weather",
+    "name": "weather/in",
+    "topic": "amir/iot/weather",
+    "qos": "0",
+    "datatype": "json",
+    "broker": "broker_cfg",
+    "x": 130,
+    "y": 120,
+    "wires": [["fn_alerts", "ws_out", "debug_raw"]]
+  },
+  {
+    "id": "fn_alerts",
+    "type": "function",
+    "z": "tab_weather",
+    "name": "evaluate thresholds",
+    "func": "// US AQI from PM2.5 (simplified breakpoints)\nfunction aqiFromPm(pm) {\n    const bp = [[0,12,0,50],[12.1,35.4,51,100],[35.5,55.4,101,150],[55.5,150.4,151,200]];\n    for (const [cl, ch, il, ih] of bp) {\n        if (pm <= ch) return Math.round((ih - il) / (ch - cl) * (pm - cl) + il);\n    }\n    return 250;\n}\n\nconst d = msg.payload;\nconst aqi = aqiFromPm(d.pm25);\nconst alerts = [];\n\nif (d.temperature >= 31) alerts.push({ level: 'critical', metric: 'temperature', message: d.temperature + 'C exceeds 31C threshold' });\nif (aqi > 50)            alerts.push({ level: 'warning',  metric: 'air',         message: 'AQI ' + aqi + ' degrading' });\nif (d.humidity < 40)     alerts.push({ level: 'info',     metric: 'humidity',    message: d.humidity + '% below comfort range' });\n\nif (alerts.length === 0) return null;\nmsg.payload = { ts: d.ts, aqi: aqi, alerts: alerts };\nreturn msg;",
+    "outputs": 1,
+    "x": 380,
+    "y": 80,
+    "wires": [["ws_alerts", "debug_alerts"]]
+  },
+  {
+    "id": "ws_out",
+    "type": "websocket out",
+    "z": "tab_weather",
+    "name": "dashboard data",
+    "server": "ws_server_data",
+    "x": 400,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "ws_alerts",
+    "type": "websocket out",
+    "z": "tab_weather",
+    "name": "dashboard alerts",
+    "server": "ws_server_alerts",
+    "x": 640,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "debug_raw",
+    "type": "debug",
+    "z": "tab_weather",
+    "name": "raw reading",
+    "active": true,
+    "complete": "payload",
+    "x": 390,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "debug_alerts",
+    "type": "debug",
+    "z": "tab_weather",
+    "name": "alerts",
+    "active": true,
+    "complete": "payload",
+    "x": 640,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "ws_server_data",
+    "type": "websocket-listener",
+    "path": "/ws/weather",
+    "wholemsg": "false"
+  },
+  {
+    "id": "ws_server_alerts",
+    "type": "websocket-listener",
+    "path": "/ws/alerts",
+    "wholemsg": "false"
+  }
+]
