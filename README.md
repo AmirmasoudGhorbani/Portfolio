@@ -4,7 +4,7 @@ Personal portfolio website for **Amir Ghorbani**, a frontend-focused software de
 
 **[amirghorbani.dev](https://amirghorbani.dev)**
 
-![Portfolio Preview](website-image.png)
+![Portfolio Preview](Website-image.png)
 
 ---
 
