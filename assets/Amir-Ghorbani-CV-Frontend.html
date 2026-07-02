@@ -8,14 +8,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <style>
+    /* ── Design tokens (matches portfolio) ── */
     :root {
       --bg:       #050505;
       --text:     #f3efe7;
       --dim:      #c8c2b8;
       --muted:    #9f998f;
       --subtle:   #6e685e;
-      --accent:   #ef5a1e;
-      --warm:     #ff7d3a;
+      --accent:   #ef5a1e;   /* ember orange — portfolio primary */
+      --warm:     #ff7d3a;   /* lighter orange — links only */
       --line:     rgba(255,255,255,0.09);
       --f-disp:   'Space Grotesk', system-ui, sans-serif;
       --f-body:   'Hanken Grotesk', system-ui, sans-serif;
@@ -35,6 +36,7 @@
       letter-spacing: 0.1px;
     }
 
+    /* Links */
     a { color: var(--warm); text-decoration: none; transition: color .2s ease, text-decoration-color .2s ease; text-decoration-color: transparent; }
     a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; text-decoration-color: var(--text); }
 
@@ -44,7 +46,9 @@
       padding: 44px 52px 52px;
     }
 
-    /* ── Header ── */
+    /* ════════════════════════════════
+       HEADER
+    ════════════════════════════════ */
     .cv-header {
       display: flex;
       justify-content: space-between;
@@ -64,6 +68,7 @@
       margin-bottom: 7px;
       color: var(--text);
     }
+    /* Accent on surname only — single strategic use */
     .cv-name .accent { color: var(--accent); }
 
     .cv-role {
@@ -86,6 +91,7 @@
     .cv-contact a { font-size: 12px; }
     .cv-contact .sep { color: var(--subtle); margin: 0 5px; }
 
+    /* Visa badge — neutral, green dot does the work */
     .visa-badge {
       display: inline-flex;
       align-items: center;
@@ -105,7 +111,9 @@
       flex-shrink: 0;
     }
 
-    /* ── Two-column layout ── */
+    /* ════════════════════════════════
+       TWO-COLUMN LAYOUT
+    ════════════════════════════════ */
     .cv-body {
       display: grid;
       grid-template-columns: 205px 1fr;
@@ -117,7 +125,9 @@
       padding-right: 24px;
     }
 
-    /* ── Section labels (h2 for ATS) ── */
+    /* ════════════════════════════════
+       SECTION LABELS  (h2 for ATS)
+    ════════════════════════════════ */
     .cv-section { margin-bottom: 16px; }
 
     h2.section-label {
@@ -126,6 +136,7 @@
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
+      /* Accent use #2 — section navigation, small enough not to read as "red" */
       color: var(--accent);
       margin-bottom: 10px;
       display: flex;
@@ -136,17 +147,21 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: var(--line);
+      background: var(--line);   /* neutral rule — no orange tint */
     }
 
-    /* ── Profile ── */
+    /* ════════════════════════════════
+       PROFILE
+    ════════════════════════════════ */
     .cv-summary {
       font-size: 12.5px;
       line-height: 1.65;
       color: var(--dim);
     }
 
-    /* ── Skills ── */
+    /* ════════════════════════════════
+       SKILLS
+    ════════════════════════════════ */
     .skill-row {
       display: flex;
       gap: 7px;
@@ -161,7 +176,9 @@
     }
     .skill-value { color: var(--dim); }
 
-    /* ── Experience ── */
+    /* ════════════════════════════════
+       EXPERIENCE
+    ════════════════════════════════ */
     .exp-item {
       margin-bottom: 12px;
       padding-bottom: 12px;
@@ -187,6 +204,7 @@
       color: var(--muted);
       white-space: nowrap;
     }
+    /* Company in italic muted — standard CV convention, no colour needed */
     .exp-company {
       font-size: 11.5px;
       color: var(--muted);
@@ -206,6 +224,7 @@
       padding-left: 15px;
       position: relative;
     }
+    /* Accent use #3 — tiny marker, just a hint of brand */
     .exp-bullets li::before {
       content: '›';
       position: absolute;
@@ -216,7 +235,9 @@
       top: 1px;
     }
 
-    /* ── Projects ── */
+    /* ════════════════════════════════
+       PROJECTS
+    ════════════════════════════════ */
     .project-item {
       margin-bottom: 9px;
       padding-bottom: 9px;
@@ -236,6 +257,7 @@
       font-weight: 600;
       color: var(--text);
     }
+    /* Tag as neutral pill — no colour, doesn't compete */
     .project-tag {
       font-size: 10px;
       font-weight: 500;
@@ -258,7 +280,9 @@
     }
     .project-meta a { font-size: 11px; }
 
-    /* ── Education ── */
+    /* ════════════════════════════════
+       EDUCATION
+    ════════════════════════════════ */
     .edu-item {
       display: flex;
       justify-content: space-between;
@@ -275,9 +299,12 @@
       margin-bottom: 2px;
     }
     .edu-uni { font-size: 11px; color: var(--muted); }
+    /* Year neutral — no colour needed */
     .edu-year { font-size: 11px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
 
-    /* ── Print ── */
+    /* ════════════════════════════════
+       PRINT  (white paper)
+    ════════════════════════════════ */
     @media print {
       :root {
         --bg:     #ffffff;
@@ -285,7 +312,7 @@
         --dim:    #2e2e2e;
         --muted:  #666666;
         --subtle: #999999;
-        --accent: #c03010;
+        --accent: #c03010;   /* darker orange, readable on white */
         --warm:   #c03010;
         --line:   rgba(0,0,0,0.09);
       }
@@ -297,7 +324,9 @@
       a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
     }
 
-    /* ── Responsive ── */
+    /* ════════════════════════════════
+       RESPONSIVE (mobile preview)
+    ════════════════════════════════ */
     @media (max-width: 640px) {
       .page { padding: 28px 20px 40px; }
       .cv-header { flex-direction: column; gap: 14px; }
@@ -321,7 +350,7 @@
   <header class="cv-header">
     <div>
       <h1 class="cv-name">Amir <span class="accent">Ghorbani</span></h1>
-      <p class="cv-role">Software Developer</p>
+      <p class="cv-role">Frontend-focused Software Developer</p>
     </div>
     <div class="header-right">
       <div class="cv-contact">
@@ -386,7 +415,7 @@
 
       <section class="cv-section">
         <h2 class="section-label">Profile</h2>
-        <p class="cv-summary">Software Developer with a Master of Computing and 3+ years of commercial experience across frontend engineering, AI and computer vision research, cloud architecture, and IoT systems. Skilled in React, TypeScript, Python, and AWS, with a track record of taking projects from concept to production across the full stack. Open to roles where technical breadth, problem-solving, and quality of output matter.</p>
+        <p class="cv-summary">Frontend-focused Software Developer with a Master of Computing and 3+ years of industry experience building responsive, accessible web interfaces. Specialises in React, TypeScript, and modern JavaScript, with an AI and computer vision background that sharpens problem-solving. Seeking frontend roles where craft, performance, and user experience matter.</p>
       </section>
 
       <section class="cv-section">
@@ -413,11 +442,29 @@
 
         <div class="project-item">
           <div class="project-top">
+            <span class="project-title">Personal Portfolio Website</span>
+            <span class="project-tag">Frontend</span>
+          </div>
+          <p class="project-desc">Production portfolio with canvas animations, scroll-driven reveals, live contact form, and full mobile responsiveness.</p>
+          <p class="project-meta">JavaScript · CSS · HTML &nbsp;·&nbsp; <a href="https://amirghorbani.dev">amirghorbani.dev ↗</a></p>
+        </div>
+
+        <div class="project-item">
+          <div class="project-top">
             <span class="project-title">AI Strawberry Disease Detection</span>
             <span class="project-tag">Master's Thesis</span>
           </div>
           <p class="project-desc">Hybrid YOLOv9 + DETR model achieving ~90% accuracy on 9,000+ images. Owned the full ML pipeline from data curation to evaluation.</p>
           <p class="project-meta">Python · PyTorch · YOLOv9 · DETR &nbsp;·&nbsp; <a href="https://github.com/AmirmasoudGhorbani/hybrid-yolov9-detr-strawberry-disease">GitHub ↗</a></p>
+        </div>
+
+        <div class="project-item">
+          <div class="project-top">
+            <span class="project-title">TV Signal Solutions Website</span>
+            <span class="project-tag">Client</span>
+          </div>
+          <p class="project-desc">Responsive marketing site for a local business, designed and delivered solo from brief to deployment.</p>
+          <p class="project-meta">HTML · CSS · JavaScript &nbsp;·&nbsp; <a href="https://signal-solution-website.vercel.app">Live Site ↗</a></p>
         </div>
 
         <div class="project-item">
@@ -436,24 +483,6 @@
           </div>
           <p class="project-desc">Real-time dashboard streaming temperature, humidity, and air quality from Raspberry Pi via MQTT and Node-RED to a live web frontend.</p>
           <p class="project-meta">Raspberry Pi · MQTT · Node-RED · JavaScript &nbsp;·&nbsp; <a href="https://github.com/AmirmasoudGhorbani/iot-weather-station">GitHub ↗</a></p>
-        </div>
-
-        <div class="project-item">
-          <div class="project-top">
-            <span class="project-title">Personal Portfolio Website</span>
-            <span class="project-tag">Frontend</span>
-          </div>
-          <p class="project-desc">Production portfolio with canvas animations, scroll-driven reveals, live contact form, and full mobile responsiveness.</p>
-          <p class="project-meta">JavaScript · CSS · HTML &nbsp;·&nbsp; <a href="https://amirghorbani.dev">amirghorbani.dev ↗</a></p>
-        </div>
-
-        <div class="project-item">
-          <div class="project-top">
-            <span class="project-title">TV Signal Solutions Website</span>
-            <span class="project-tag">Client</span>
-          </div>
-          <p class="project-desc">Responsive marketing site for a local business, designed and delivered solo from brief to deployment.</p>
-          <p class="project-meta">HTML · CSS · JavaScript &nbsp;·&nbsp; <a href="https://signal-solution-website.vercel.app">Live Site ↗</a></p>
         </div>
 
       </section>
