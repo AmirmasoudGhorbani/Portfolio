@@ -163,15 +163,6 @@ main { position: relative; z-index: 1; }
 .flame-btn { position: relative; display: inline-flex; isolation: isolate; border-radius: 999px; }
 .flame-btn-block { display: flex; border-radius: 12px; }
 .flame-btn .btn { position: relative; z-index: 1; }
-.btn-fire {
-  position: absolute;
-  left: -14px;
-  top: -46px;
-  width: calc(100% + 28px);
-  height: calc(100% + 52px);
-  z-index: 0;
-  pointer-events: none;
-}
 
 /* ---------- Header ---------- */
 .site-header {

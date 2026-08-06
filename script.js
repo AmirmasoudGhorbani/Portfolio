@@ -32,7 +32,6 @@
       initNeuralNoise();
       initBgParticles();
       initEmbers();
-      initButtonFire();
     }
   }
 
@@ -196,6 +195,11 @@
         setStatus("Please fill in your name, email, and message.", "error");
         return;
       }
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        setStatus("Please enter a valid email address.", "error");
+        return;
+      }
       try {
         setStatus("Sending…", "");
         const formData = new FormData(form);
@@ -324,138 +328,6 @@
       mouse.active = (x >= 0 && y >= 0 && x <= r.width && y <= r.height);
       if (mouse.active) { mouse.x = x; mouse.y = y; }
     }, { passive: true });
-  }
-
-  /* ---------- Button flame (WebGL domain-warped smoke on hover) ---------- */
-  function initButtonFire() {
-    const wraps = Array.from(document.querySelectorAll(".flame-btn"));
-    if (!wraps.length) return;
-    wraps.forEach((w) => {
-      const el = w.querySelector("a, button") || w;
-      el.style.transition = "transform .18s cubic-bezier(.16,1,.3,1)";
-      const set = (s) => { el.style.transform = s; };
-      w.addEventListener("pointerenter", () => set("translateY(-2px) scale(1.035)"));
-      w.addEventListener("pointerleave", () => set(""));
-      w.addEventListener("pointerdown", () => set("translateY(0) scale(0.96)"));
-      w.addEventListener("pointerup", () => set("translateY(-2px) scale(1.035)"));
-    });
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
-    const fsrc = [
-      "precision highp float;",
-      "uniform vec2 uRes; uniform float uTime; uniform float uHover; uniform float uEmit;",
-      "vec2 hash22(vec2 p){ p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))); return -1.0+2.0*fract(sin(p)*43758.5453123); }",
-      "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
-      "  return mix(mix(dot(hash22(i+vec2(0,0)),f-vec2(0,0)),dot(hash22(i+vec2(1,0)),f-vec2(1,0)),u.x),",
-      "             mix(dot(hash22(i+vec2(0,1)),f-vec2(0,1)),dot(hash22(i+vec2(1,1)),f-vec2(1,1)),u.x),u.y); }",
-      "float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.02; a*=0.5; } return v; }",
-      "void main(){",
-      "  vec2 uv = gl_FragCoord.xy / uRes;",
-      "  float ar = uRes.x / uRes.y;",
-      "  float x = uv.x;",
-      "  float above = (uv.y - uEmit) / max(0.001, 1.0 - uEmit);",
-      "  if (above < 0.0) { gl_FragColor = vec4(0.0); return; }",
-      "  float t = uTime * 0.3;",
-      "  vec2 p = vec2(x * ar * 2.6, uv.y * 2.6);",
-      "  vec2 q = vec2(fbm(p + vec2(0.0,-t)), fbm(p + vec2(3.1,-t*1.12)));",
-      "  vec2 r = vec2(fbm(p + 2.4*q + vec2(1.7,-t*1.2)), fbm(p + 2.4*q + vec2(8.3,-t*1.05)));",
-      "  float f = fbm(p + 2.4*r); f = f*0.5+0.5;",
-      "  float ridge = fbm(p + 2.4*r + vec2(2.0)); ridge = 1.0 - abs(ridge);",
-      // drift: reuse ridge noise so no extra fbm calls
-      "  float cx = x - 0.5 + (ridge - 0.5) * 0.07;",
-      // gaussian spread that widens as steam rises — no hard pillar edge
-      "  float spread = 0.11 + above * 0.22;",
-      "  float colmask = exp(-cx*cx / (2.0*spread*spread));",
-      "  float vert = smoothstep(0.0, 0.14, above) * (1.0 - smoothstep(0.45, 1.0, above));",
-      "  float density = f * colmask * vert * uHover;",
-      "  density = clamp(density * 2.3 - 0.05, 0.0, 1.0);",
-      // near-white steam instead of flat grey
-      "  vec3 col = mix(vec3(0.88,0.86,0.84), vec3(0.97,0.97,1.0), pow(clamp(ridge,0.0,1.0),4.0));",
-      "  gl_FragColor = vec4(col, density * 0.55);",
-      "}"
-    ].join("\n");
-
-    const systems = wraps.map((wrap) => {
-      const canvas = wrap.querySelector("canvas.btn-fire");
-      if (!canvas) return null;
-      const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: false }) || canvas.getContext("experimental-webgl");
-      if (!gl) return null;
-      const mk = (type, src) => {
-        const s = gl.createShader(type);
-        gl.shaderSource(s, src);
-        gl.compileShader(s);
-        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-          console.warn("[btn-fire] shader compile error:", gl.getShaderInfoLog(s));
-        return s;
-      };
-      const prog = gl.createProgram();
-      gl.attachShader(prog, mk(gl.VERTEX_SHADER, vsrc));
-      gl.attachShader(prog, mk(gl.FRAGMENT_SHADER, fsrc));
-      gl.linkProgram(prog);
-      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-        console.warn("[btn-fire] program link error:", gl.getProgramInfoLog(prog));
-        return null;
-      }
-      gl.useProgram(prog);
-      const buf = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-      const loc = gl.getAttribLocation(prog, "p");
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-      const u = {
-        res: gl.getUniformLocation(prog, "uRes"),
-        time: gl.getUniformLocation(prog, "uTime"),
-        hover: gl.getUniformLocation(prog, "uHover"),
-        emit: gl.getUniformLocation(prog, "uEmit"),
-      };
-      const sys = { wrap, canvas, gl, u, active: false, intensity: 0, padTop: 46, W: 0, H: 0, hadDraw: false };
-      const resize = () => {
-        const rct = canvas.getBoundingClientRect();
-        sys.W = rct.width; sys.H = rct.height;
-        canvas.width = Math.max(1, Math.round(rct.width * dpr));
-        canvas.height = Math.max(1, Math.round(rct.height * dpr));
-        gl.viewport(0, 0, canvas.width, canvas.height);
-      };
-      resize();
-      sys._resize = resize;
-      if (window.ResizeObserver) { sys._ro = new ResizeObserver(resize); sys._ro.observe(wrap); }
-      wrap.addEventListener("mouseenter", () => { sys.active = true; });
-      wrap.addEventListener("mouseleave", () => { sys.active = false; });
-      wrap.addEventListener("focusin", () => { sys.active = true; });
-      wrap.addEventListener("focusout", () => { sys.active = false; });
-      return sys;
-    }).filter(Boolean);
-
-    window.addEventListener("resize", () => systems.forEach((s) => s._resize()), { passive: true });
-
-    const t0 = performance.now();
-    const tick = (now) => {
-      requestAnimationFrame(tick);
-      if (document.hidden) return;
-      for (const sys of systems) {
-        const target = sys.active ? 1 : 0;
-        sys.intensity += (target - sys.intensity) * (sys.active ? 0.09 : 0.05);
-        if (sys.intensity < 0.004 && !sys.active) sys.intensity = 0;
-        const gl = sys.gl;
-        if (sys.intensity <= 0) {
-          if (sys.hadDraw) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); sys.hadDraw = false; }
-          continue;
-        }
-        sys.hadDraw = true;
-        const emit = 1.0 - (sys.padTop / Math.max(1, sys.H));
-        gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniform2f(sys.u.res, sys.canvas.width, sys.canvas.height);
-        gl.uniform1f(sys.u.time, (now - t0) / 1000);
-        gl.uniform1f(sys.u.hover, sys.intensity);
-        gl.uniform1f(sys.u.emit, emit);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
-      }
-    };
-    requestAnimationFrame(tick);
   }
 
   /* ---------- Site-wide neural-noise field (WebGL fbm) ---------- */
