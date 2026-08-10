@@ -637,6 +637,8 @@ main { position: relative; z-index: 1; }
   transition: border-color .25s ease, box-shadow .25s ease;
 }
 .form-input:focus { border-color: rgba(239,90,30,.6); box-shadow: 0 0 0 3px rgba(239,90,30,.12); }
+.form-input.is-invalid { border-color: rgba(224,60,60,.65); }
+.form-input.is-invalid:focus { border-color: rgba(224,60,60,.8); box-shadow: 0 0 0 3px rgba(224,60,60,.14); }
 .form-textarea { min-height: 132px; resize: vertical; line-height: 1.6; }
 .btn-submit { width: 100%; padding: 15px; border-radius: 12px; font-family: var(--font-mono); font-weight: 700; font-size: 15px; letter-spacing: .3px; justify-content: center; }
 .btn-submit .prompt { opacity: .55; }

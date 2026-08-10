@@ -182,22 +182,58 @@
     const form = document.getElementById("contact-form");
     if (!form) return;
     const statusEl = document.getElementById("form-status");
+    const nameEl = document.getElementById("f-name");
+    const emailEl = document.getElementById("f-email");
+    const messageEl = document.getElementById("f-message");
+
+    // letters (any language) with single spaces/hyphens/apostrophes between words, 2-60 chars
+    const namePattern = /^\p{L}[\p{L}'-]*(?: \p{L}[\p{L}'-]*)*$/u;
+    // local@label(.label)*.tld — tld must be 2+ letters, no consecutive dots
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
+
     const setStatus = (msg, type) => {
       statusEl.textContent = msg;
       statusEl.className = "form-status" + (type ? " is-" + type : "");
     };
+    const markInvalid = (el, invalid) => {
+      el.classList.toggle("is-invalid", invalid);
+      el.setAttribute("aria-invalid", invalid ? "true" : "false");
+    };
+
+    const validate = () => {
+      const name = nameEl.value.trim();
+      const email = emailEl.value.trim();
+      const message = messageEl.value.trim();
+
+      if (!name || !email || !message) {
+        markInvalid(nameEl, !name);
+        markInvalid(emailEl, !email);
+        markInvalid(messageEl, !message);
+        return { ok: false, msg: "Please fill in your name, email, and message." };
+      }
+
+      const nameOk = name.length >= 2 && name.length <= 60 && namePattern.test(name);
+      markInvalid(nameEl, !nameOk);
+      if (!nameOk) return { ok: false, msg: "Please enter a valid name (letters and spaces only)." };
+
+      const emailOk = emailPattern.test(email) && !email.includes("..");
+      markInvalid(emailEl, !emailOk);
+      if (!emailOk) return { ok: false, msg: "Please enter a valid email address." };
+
+      markInvalid(messageEl, false);
+      return { ok: true, name, email, message };
+    };
+
+    [nameEl, emailEl].forEach((el) => {
+      el.addEventListener("blur", validate);
+      el.addEventListener("input", () => { if (el.classList.contains("is-invalid")) validate(); });
+    });
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = (document.getElementById("f-name").value || "").trim();
-      const email = (document.getElementById("f-email").value || "").trim();
-      const message = (document.getElementById("f-message").value || "").trim();
-      if (!name || !email || !message) {
-        setStatus("Please fill in your name, email, and message.", "error");
-        return;
-      }
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(email)) {
-        setStatus("Please enter a valid email address.", "error");
+      const result = validate();
+      if (!result.ok) {
+        setStatus(result.msg, "error");
         return;
       }
       try {
@@ -211,6 +247,7 @@
         if (data.success) {
           setStatus("Message sent. I'll be in touch soon!", "success");
           form.reset();
+          [nameEl, emailEl, messageEl].forEach((el) => markInvalid(el, false));
         } else {
           throw new Error(data.message || "Failed to send message.");
         }
