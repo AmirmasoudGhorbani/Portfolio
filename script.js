@@ -27,6 +27,7 @@
     initStagger(document.getElementById("work-grid"), "[data-card]", 90);
     initStagger(document.getElementById("tech-wrap"), "[data-tech]", 45);
     initContactForm();
+    initPortraitLight();
 
     if (!reduced) {
       initNeuralNoise();
@@ -365,6 +366,184 @@
       mouse.active = (x >= 0 && y >= 0 && x <= r.width && y <= r.height);
       if (mouse.active) { mouse.x = x; mouse.y = y; }
     }, { passive: true });
+  }
+
+  /* ---------- Hero portrait: real-time relighting (WebGL) ----------
+     The statue photo is paired with a pre-baked normal/depth map
+     (RG = surface normal, B = depth). A key light follows the cursor,
+     gold dust gets a metallic glint, a warm ember rim light wraps the
+     silhouette, and depth drives a few pixels of parallax so the head
+     turns slightly with the pointer. Falls back to the plain <img>. */
+  function initPortraitLight() {
+    const frame = document.querySelector(".hero-portrait-frame");
+    const img = document.getElementById("hero-portrait-img");
+    if (!frame || !img) return;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: true });
+    if (!gl) return;
+
+    const vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+    const fsrc = [
+      "precision highp float;",
+      "uniform sampler2D uAlbedo, uNormal;",
+      "uniform vec2 uRes, uTexel; uniform vec3 uLight; uniform vec2 uPar; uniform float uRim;",
+      "vec3 toLin(vec3 c){ return c*c*(c*0.305306+0.682171)+c*0.012523; }",
+      "vec3 toSrgb(vec3 c){ c=max(c,0.0); return max(1.055*pow(c,vec3(0.416667))-0.055,0.0); }",
+      "void main(){",
+      "  vec2 uv=vec2(gl_FragCoord.x/uRes.x, 1.0-gl_FragCoord.y/uRes.y);",
+      // two-step parallax: near surfaces (nose, brow) shift more than ears/hair
+      "  float d=texture2D(uNormal,uv).b;",
+      "  vec2 uv1=uv-uPar*(d-0.7);",
+      "  d=texture2D(uNormal,uv1).b;",
+      "  vec2 st=clamp(uv-uPar*(d-0.7),0.0,1.0);",
+      "  vec4 alb=texture2D(uAlbedo,st);",
+      "  if(alb.a<0.003){ gl_FragColor=vec4(0.0); return; }",
+      // fine surface normal (stone grain, gold dust) from the map ...
+      "  vec3 nm=texture2D(uNormal,st).rgb;",
+      "  vec3 nf=vec3(nm.rg*2.0-1.0,0.0); nf.z=sqrt(max(1.0-dot(nf.xy,nf.xy),0.0));",
+      // ... and a smooth form normal (skull, cheek, brow) from the depth channel
+      "  vec2 e=uTexel*3.0;",
+      "  float dx=texture2D(uNormal,st+vec2(e.x,0.0)).b-texture2D(uNormal,st-vec2(e.x,0.0)).b;",
+      "  float dy=texture2D(uNormal,st+vec2(0.0,e.y)).b-texture2D(uNormal,st-vec2(0.0,e.y)).b;",
+      "  vec3 ns=normalize(vec3(-dx*22.0,-dy*22.0,1.0));",
+      "  vec3 n=normalize(ns+vec3(nf.xy*0.45,0.0));",
+      "  vec3 base=toLin(alb.rgb);",
+      "  vec3 L=normalize(uLight); vec3 V=vec3(0.0,0.0,1.0); vec3 H=normalize(L+V);",
+      "  float ndl=dot(n,L);",
+      // modulate the photo's baked lighting rather than replace it:
+      // a surface facing the viewer under the default light stays neutral
+      "  float shade=0.5+0.78*max(ndl,0.0)+0.1*min(ndl,0.0);",
+      "  shade=mix(1.0,shade,0.62);",
+      "  float lum=dot(alb.rgb,vec3(0.2126,0.7152,0.0722));",
+      "  float gold=smoothstep(0.05,0.18,(alb.r+alb.g)*0.5-alb.b)*smoothstep(0.08,0.3,lum);",
+      // basalt-like stone: soft broad sheen on the form; gold dust: tight
+      // metallic glints on each grain
+      "  float ndh=max(dot(n,H),0.0), gdh=max(dot(normalize(ns+vec3(nf.xy*1.4,0.0)),H),0.0);",
+      "  vec3 spec=vec3(0.95,0.93,0.9)*pow(ndh,16.0)*0.07*(0.4+lum*2.0)*(1.0-gold);",
+      "  spec+=vec3(1.0,0.74,0.32)*pow(gdh,60.0)*1.8*gold*(0.3+lum);",
+      "  spec+=vec3(1.0,0.82,0.48)*pow(ndh,8.0)*0.6*gold*base;",
+      // warm ember bounce from below-left, only on the silhouette's form
+      "  vec3 R=normalize(vec3(-0.85,0.45,0.25));",
+      "  float fres=pow(1.0-ns.z,1.6);",
+      "  vec3 rim=vec3(1.0,0.42,0.16)*max(dot(ns,R),0.0)*fres*uRim*(base*3.0+0.004);",
+      "  vec3 col=base*shade+spec*smoothstep(-0.1,0.5,dot(ns,L))+rim;",
+      "  col=toSrgb(col);",
+      "  gl_FragColor=vec4(col*alb.a,alb.a);",
+      "}"
+    ].join("\n");
+
+    const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, mk(gl.VERTEX_SHADER, vsrc));
+    gl.attachShader(prog, mk(gl.FRAGMENT_SHADER, fsrc));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(prog, "uRes");
+    const uLight = gl.getUniformLocation(prog, "uLight");
+    const uPar = gl.getUniformLocation(prog, "uPar");
+    const uRim = gl.getUniformLocation(prog, "uRim");
+    gl.uniform1i(gl.getUniformLocation(prog, "uAlbedo"), 0);
+    gl.uniform1i(gl.getUniformLocation(prog, "uNormal"), 1);
+
+    const texFrom = (unit, source) => {
+      const t = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    };
+    const loadImg = (el) => new Promise((res, rej) => {
+      if (el.complete && el.naturalWidth) return res(el);
+      el.addEventListener("load", () => res(el), { once: true });
+      el.addEventListener("error", rej, { once: true });
+    });
+    const normalImg = new Image();
+    normalImg.decoding = "async";
+    normalImg.src = "images/portrait-statue-normal.jpg" + location.search;
+
+    // Default light: high and to the left, matching the photo's own key light.
+    const rest = { x: -0.42, y: -0.55 };
+    const light = { x: rest.x, y: rest.y, tx: rest.x, ty: rest.y };
+    let last = -1e9, visible = true, ready = false;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const resize = () => {
+      const w = Math.max(1, Math.round(frame.clientWidth * dpr));
+      const h = Math.max(1, Math.round(frame.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+    const draw = () => {
+      resize();
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform3f(uLight, light.x, light.y, 0.78);
+      // the head leans a touch toward the light / pointer
+      gl.uniform2f(uPar, (light.x - rest.x) * 0.006, (light.y - rest.y) * 0.004);
+      gl.uniform1f(uRim, 0.9);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+
+    Promise.all([loadImg(img), loadImg(normalImg)]).then(() => {
+      texFrom(0, img);
+      texFrom(1, normalImg);
+      gl.uniform2f(gl.getUniformLocation(prog, "uTexel"), 1 / normalImg.naturalWidth, 1 / normalImg.naturalHeight);
+      frame.appendChild(canvas);
+      draw();
+      ready = true;
+      requestAnimationFrame(() => frame.classList.add("is-lit"));
+      if (!reduced) requestAnimationFrame(tick);
+    }).catch(() => { canvas.remove(); });
+
+    if (reduced) {
+      window.addEventListener("resize", () => { if (ready) draw(); }, { passive: true });
+      return;
+    }
+
+    window.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const r = frame.getBoundingClientRect();
+      const px = (e.clientX - (r.left + r.width * 0.55)) / (r.width * 0.9);
+      const py = (e.clientY - (r.top + r.height * 0.42)) / (r.height * 0.6);
+      light.tx = Math.max(-1.3, Math.min(1.3, px));
+      light.ty = Math.max(-1.2, Math.min(1.2, py));
+      last = performance.now();
+    }, { passive: true });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => { visible = entries[0].isIntersecting; }).observe(frame);
+    }
+
+    let prevX = NaN, prevY = NaN, prevW = 0, prevH = 0;
+    function tick(now) {
+      requestAnimationFrame(tick);
+      if (document.hidden || !visible) return;
+      // after a few idle seconds the light drifts slowly, like a passing flame
+      if (now - last > 3500) {
+        const t = now / 1000;
+        light.tx = rest.x + Math.sin(t * 0.23) * 0.32 + Math.sin(t * 0.61) * 0.06;
+        light.ty = rest.y + Math.cos(t * 0.17) * 0.18;
+      }
+      light.x += (light.tx - light.x) * 0.06;
+      light.y += (light.ty - light.y) * 0.06;
+      if (Math.abs(light.x - prevX) < 1e-4 && Math.abs(light.y - prevY) < 1e-4 &&
+          frame.clientWidth === prevW && frame.clientHeight === prevH) return;
+      prevX = light.x; prevY = light.y; prevW = frame.clientWidth; prevH = frame.clientHeight;
+      draw();
+    }
   }
 
   /* ---------- Site-wide neural-noise field (WebGL fbm) ---------- */
