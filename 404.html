@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · Amir Ghorbani</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="/assets/ag-logo-112.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Hanken+Grotesk:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #050505; --text: #f1ece3; --muted: #9f998f; --accent: #ef5a1e; --gold: #c9a04c; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; padding-inline: 20px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 35%, rgba(239,90,30,.12), transparent 55%), var(--bg);
+    color: var(--text);
+    font-family: "Hanken Grotesk", system-ui, sans-serif;
+  }
+  main { max-width: 520px; text-align: center; }
+  .code { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; letter-spacing: 3px; color: var(--accent); margin: 0 0 18px; }
+  h1 { font-family: "Space Grotesk", system-ui, sans-serif; font-weight: 600; font-size: clamp(32px, 7vw, 48px); line-height: 1.1; margin: 0 0 16px; text-wrap: balance; }
+  p { color: var(--muted); font-size: 17px; line-height: 1.7; margin: 0 0 32px; }
+  a {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 24px; border-radius: 999px;
+    background: var(--accent); color: #140802; font-weight: 600; text-decoration: none;
+  }
+  a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  svg { display: block; margin: 0 auto 28px; color: var(--gold); opacity: .8; }
+</style>
+</head>
+<body>
+  <main>
+    <svg width="72" height="72" viewBox="-50 -50 100 100" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="2">
+        <circle r="46"></circle>
+        <path d="M0,-34 L9.8,-23.7 24,-24 23.7,-9.8 34,0 23.7,9.8 24,24 9.8,23.7 0,34 -9.8,23.7 -24,24 -23.7,9.8 -34,0 -23.7,-9.8 -24,-24 -9.8,-23.7Z"></path>
+        <circle r="10"></circle>
+      </g>
+    </svg>
+    <p class="code">404</p>
+    <h1>This page doesn't exist.</h1>
+    <p>The link may be broken or the page may have moved. Everything else is on the home page.</p>
+    <a href="/">Back to the home page <span aria-hidden="true">&rarr;</span></a>
+  </main>
+</body>
+</html>

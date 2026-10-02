@@ -27,6 +27,7 @@
     initStagger(document.getElementById("work-grid"), "[data-card]", 90);
     initStagger(document.getElementById("tech-wrap"), "[data-tech]", 45);
     initContactForm();
+    initProjectImages();
     initPortraitLight();
 
     if (!reduced) {
@@ -34,6 +35,25 @@
       initBgParticles();
       initEmbers();
     }
+  }
+
+  /* ---------- Project images: fade in when ready, fetch early ---------- */
+  function initProjectImages() {
+    const imgs = Array.from(document.querySelectorAll(".card-media img"));
+    imgs.forEach((img) => {
+      if (img.complete && img.naturalWidth) return;
+      const media = img.closest(".card-media");
+      media.classList.add("img-pending");
+      const done = () => media.classList.remove("img-pending");
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    });
+    // once the page itself has loaded, fetch the project images in the
+    // background so they're usually ready before they scroll into view
+    const prefetch = () => imgs.forEach((img) => { img.loading = "eager"; });
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 600));
+    if (document.readyState === "complete") idle(prefetch);
+    else window.addEventListener("load", () => idle(prefetch), { once: true });
   }
 
   /* ---------- Preview-sandbox asset token (no-op in production) ---------- */
@@ -372,8 +392,7 @@
      The statue photo is paired with a pre-baked normal/depth map
      (RG = surface normal, B = depth). A key light follows the cursor,
      gold dust gets a metallic glint, a warm ember rim light wraps the
-     silhouette, and depth drives a few pixels of parallax so the head
-     turns slightly with the pointer. Falls back to the plain <img>. */
+     silhouette. Falls back to the plain <img>. */
   function initPortraitLight() {
     const frame = document.querySelector(".hero-portrait-frame");
     const img = document.getElementById("hero-portrait-img");
@@ -387,16 +406,12 @@
     const fsrc = [
       "precision highp float;",
       "uniform sampler2D uAlbedo, uNormal;",
-      "uniform vec2 uRes, uTexel; uniform vec3 uLight; uniform vec2 uPar; uniform float uRim;",
+      "uniform vec2 uRes, uTexel; uniform vec3 uLight; uniform float uRim;",
       "vec3 toLin(vec3 c){ return c*c*(c*0.305306+0.682171)+c*0.012523; }",
       "vec3 toSrgb(vec3 c){ c=max(c,0.0); return max(1.055*pow(c,vec3(0.416667))-0.055,0.0); }",
       "void main(){",
       "  vec2 uv=vec2(gl_FragCoord.x/uRes.x, 1.0-gl_FragCoord.y/uRes.y);",
-      // two-step parallax: near surfaces (nose, brow) shift more than ears/hair
-      "  float d=texture2D(uNormal,uv).b;",
-      "  vec2 uv1=uv-uPar*(d-0.7);",
-      "  d=texture2D(uNormal,uv1).b;",
-      "  vec2 st=clamp(uv-uPar*(d-0.7),0.0,1.0);",
+      "  vec2 st=uv;",
       "  vec4 alb=texture2D(uAlbedo,st);",
       "  if(alb.a<0.003){ gl_FragColor=vec4(0.0); return; }",
       // fine surface normal (stone grain, gold dust) from the map ...
@@ -407,16 +422,20 @@
       "  float dx=texture2D(uNormal,st+vec2(e.x,0.0)).b-texture2D(uNormal,st-vec2(e.x,0.0)).b;",
       "  float dy=texture2D(uNormal,st+vec2(0.0,e.y)).b-texture2D(uNormal,st-vec2(0.0,e.y)).b;",
       "  vec3 ns=normalize(vec3(-dx*22.0,-dy*22.0,1.0));",
-      "  vec3 n=normalize(ns+vec3(nf.xy*0.45,0.0));",
+      "  vec3 n=ns;",
       "  vec3 base=toLin(alb.rgb);",
+      "  float lum=dot(alb.rgb,vec3(0.2126,0.7152,0.0722));",
+      // gold dust is detected from a small neighbourhood, so stray warm grain
+      // pixels in the stone don't flash as tiny pieces of gold
+      "  vec2 g2=uTexel*2.0;",
+      "  vec3 an=(alb.rgb+texture2D(uAlbedo,st+vec2(g2.x,0.0)).rgb+texture2D(uAlbedo,st-vec2(g2.x,0.0)).rgb+texture2D(uAlbedo,st+vec2(0.0,g2.y)).rgb+texture2D(uAlbedo,st-vec2(0.0,g2.y)).rgb)*0.2;",
+      "  float gold=smoothstep(0.06,0.17,(an.r+an.g)*0.5-an.b)*smoothstep(0.05,0.12,(alb.r+alb.g)*0.5-alb.b)*smoothstep(0.08,0.3,lum);",
       "  vec3 L=normalize(uLight); vec3 V=vec3(0.0,0.0,1.0); vec3 H=normalize(L+V);",
       "  float ndl=dot(n,L);",
       // modulate the photo's baked lighting rather than replace it:
       // a surface facing the viewer under the default light stays neutral
       "  float shade=0.5+0.78*max(ndl,0.0)+0.1*min(ndl,0.0);",
       "  shade=mix(1.0,shade,0.62);",
-      "  float lum=dot(alb.rgb,vec3(0.2126,0.7152,0.0722));",
-      "  float gold=smoothstep(0.05,0.18,(alb.r+alb.g)*0.5-alb.b)*smoothstep(0.08,0.3,lum);",
       // basalt-like stone: soft broad sheen on the form; gold dust: tight
       // metallic glints on each grain
       "  float ndh=max(dot(n,H),0.0), gdh=max(dot(normalize(ns+vec3(nf.xy*1.4,0.0)),H),0.0);",
@@ -449,7 +468,6 @@
 
     const uRes = gl.getUniformLocation(prog, "uRes");
     const uLight = gl.getUniformLocation(prog, "uLight");
-    const uPar = gl.getUniformLocation(prog, "uPar");
     const uRim = gl.getUniformLocation(prog, "uRim");
     gl.uniform1i(gl.getUniformLocation(prog, "uAlbedo"), 0);
     gl.uniform1i(gl.getUniformLocation(prog, "uNormal"), 1);
@@ -490,8 +508,6 @@
       resize();
       gl.uniform2f(uRes, canvas.width, canvas.height);
       gl.uniform3f(uLight, light.x, light.y, 0.78);
-      // the head leans a touch toward the light / pointer
-      gl.uniform2f(uPar, (light.x - rest.x) * 0.006, (light.y - rest.y) * 0.004);
       gl.uniform1f(uRim, 0.9);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);

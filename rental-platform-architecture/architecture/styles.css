@@ -1,7 +1,7 @@
 :root{
   --net:#a78bfa; --compute:#fb923c; --storage:#86efac; --db:#818cf8;
   --intg:#f472b6; --search:#5eead4; --actor:#94a3b8; --misc:#fbbf24;
-  --ink:#e2e8f0; --ink2:#94a3b8; --ink3:#64748b;
+  --ink:#e2e8f0; --ink2:#94a3b8; --ink3:#7c8aa0;
   --line:rgba(255,255,255,0.08); --line2:rgba(255,255,255,0.12);
   --bg:#08080e; --card:#12121e; --surface:#0e0e18;
   --disp:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;

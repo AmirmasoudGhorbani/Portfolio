@@ -1,7 +1,7 @@
 :root{
   --bg:#05070d; --panel:#0c1424; --frame:#080d18;
   --border:rgba(120,160,220,0.10); --border2:rgba(120,160,220,0.12);
-  --text:#e7eefb; --muted:#8a96ab; --faint:#566275; --faint2:#7d8aa3;
+  --text:#e7eefb; --muted:#8a96ab; --faint:#7c8aa0; --faint2:#7d8aa3;
   --temp:#ff8a5c; --hum:#4d9bff; --green:#3fd07a; --cyan:#34d3e6;
   --amber:#ffb24d; --red:#ff5d6c;
   --mono:'JetBrains Mono',monospace; --disp:'Space Grotesk',sans-serif;
