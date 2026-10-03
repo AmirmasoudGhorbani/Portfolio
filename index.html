@@ -191,36 +191,14 @@
             <span class="card-glow" aria-hidden="true"></span>
           </div>
           <div class="card-body">
-            <p class="card-eyebrow">Featured · Machine Learning · Master's Thesis</p>
+            <p class="card-eyebrow">Master's thesis · Machine learning</p>
             <h3 class="card-title">AI Strawberry Disease Detection</h3>
-            <p class="card-desc">My Master's thesis: a hybrid object-detection model that flags strawberry disease and ripeness across a dataset of 9,000+ images, reaching around 90% accuracy by combining YOLOv9 and DETR. I owned the full pipeline, from data preparation and training to evaluation.</p>
-            <p class="card-role"><span class="muted">Role:</span> ML research &amp; engineering</p>
+            <p class="card-desc">A hybrid YOLOv9 + DETR model that flags strawberry disease and ripeness with about 90% accuracy across 9,000+ images. I owned the full pipeline, from data preparation to evaluation.</p>
             <ul class="tag-list">
               <li class="tag">Python</li><li class="tag">PyTorch</li><li class="tag">YOLOv9</li><li class="tag">DETR</li>
             </ul>
             <div class="card-links">
               <a href="https://github.com/AmirmasoudGhorbani/hybrid-yolov9-detr-strawberry-disease" target="_blank" rel="noreferrer" class="card-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Rental -->
-        <article class="card work-card span-1" data-card data-glow>
-          <div class="card-media">
-            <picture><source type="image/webp" srcset="images/nz-rental-market-800.webp 800w, images/nz-rental-market-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/nz-rental-market.png" alt="NZ Rental Market Analysis dashboard" width="1600" height="900" loading="lazy" decoding="async"></picture>
-            <span class="card-glow" aria-hidden="true"></span>
-          </div>
-          <div class="card-body">
-            <p class="card-eyebrow">Data Analysis · SQL · Python</p>
-            <h3 class="card-title">NZ Rental Market Analysis</h3>
-            <p class="card-desc">33 years of government rental data, modelled in SQL and adjusted for inflation. Rents have stalled, and in real terms they're 8% below their 2022 peak, with cities cooling while the regions climb. I tested a supply hypothesis (it failed) and documented a coding issue in the source data.</p>
-            <p class="card-role"><span class="muted">Role:</span> Data analysis &amp; visualisation</p>
-            <ul class="tag-list">
-              <li class="tag">SQL</li><li class="tag">DuckDB</li><li class="tag">Python</li><li class="tag">pandas</li><li class="tag">Data viz</li>
-            </ul>
-            <div class="card-links">
-              <a href="./nz-rental-market/dashboard/" class="card-link">Live Dashboard <span aria-hidden="true" class="arrow">&#8599;</span></a>
-              <a href="https://github.com/AmirmasoudGhorbani/Portfolio/tree/main/nz-rental-market" target="_blank" rel="noreferrer" class="card-link">Code &amp; notebook <span aria-hidden="true" class="arrow">&#8599;</span></a>
             </div>
           </div>
         </article>
@@ -232,12 +210,11 @@
             <span class="card-glow" aria-hidden="true"></span>
           </div>
           <div class="card-body">
-            <p class="card-eyebrow">Data Analysis · Live Data · Python</p>
+            <p class="card-eyebrow">Data engineering · Live data</p>
             <h3 class="card-title">NZ Earthquake Analysis</h3>
-            <p class="card-desc">175,000 quakes from GeoNet's catalogue, modelled in SQL and Python, with a live feed from GeoNet's API. Three in four are aftershocks: I declustered the catalogue, fitted aftershock decay for Kaikōura, and caught a 2012 change in how magnitudes were measured that would fake a calmer New Zealand.</p>
-            <p class="card-role"><span class="muted">Role:</span> Data engineering, analysis &amp; visualisation</p>
+            <p class="card-desc">175,000 GeoNet quakes modelled in SQL and Python, with a live API feed. Three in four are aftershocks, and a 2012 change in how magnitudes were measured would fake a calmer New Zealand.</p>
             <ul class="tag-list">
-              <li class="tag">SQL</li><li class="tag">DuckDB</li><li class="tag">Python</li><li class="tag">SciPy</li><li class="tag">REST APIs</li><li class="tag">Data viz</li>
+              <li class="tag">SQL</li><li class="tag">Python</li><li class="tag">SciPy</li><li class="tag">REST APIs</li>
             </ul>
             <div class="card-links">
               <a href="./nz-earthquakes/dashboard/" class="card-link">Live Dashboard <span aria-hidden="true" class="arrow">&#8599;</span></a>
@@ -245,85 +222,93 @@
             </div>
           </div>
         </article>
+
+        <!-- Rental -->
         <article class="card work-card span-1" data-card data-glow>
           <div class="card-media">
-            <picture><source type="image/webp" srcset="images/system-architecture-800.webp 800w, images/system-architecture-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/system-architecture.png" alt="Scalable Rental Platform Architecture" width="1600" height="900" loading="lazy" decoding="async"></picture>
+            <picture><source type="image/webp" srcset="images/nz-rental-market-800.webp 800w, images/nz-rental-market-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/nz-rental-market.png" alt="NZ Rental Market Analysis dashboard" width="1600" height="900" loading="lazy" decoding="async"></picture>
             <span class="card-glow" aria-hidden="true"></span>
           </div>
           <div class="card-body">
-            <p class="card-eyebrow">Cloud · System Design</p>
-            <h3 class="card-title">Scalable Rental Platform Architecture</h3>
-            <p class="card-desc">An end-to-end AWS architecture for a rental marketplace, with microservices on EC2/ECS behind Route 53 and a load balancer, S3 for media, RDS, queue-based updates, and Elasticsearch. Designed to scale horizontally under load.</p>
-            <p class="card-role"><span class="muted">Role:</span> System design</p>
+            <p class="card-eyebrow">Data analysis · Public data</p>
+            <h3 class="card-title">NZ Rental Market Analysis</h3>
+            <p class="card-desc">33 years of MBIE rental bond data modelled in SQL. Rents have stalled and, after inflation, sit 8% below their 2022 peak. I tested a supply hypothesis and rejected it.</p>
             <ul class="tag-list">
-              <li class="tag">AWS</li><li class="tag">Microservices</li><li class="tag">RDS</li><li class="tag">Elasticsearch</li>
+              <li class="tag">SQL</li><li class="tag">DuckDB</li><li class="tag">Python</li><li class="tag">pandas</li>
             </ul>
             <div class="card-links">
-              <a href="./rental-platform-architecture/architecture/index.html" class="card-link">Live Demo <span aria-hidden="true" class="arrow">&#8599;</span></a>
-              <a href="https://github.com/AmirmasoudGhorbani/rental-platform-architecture" target="_blank" rel="noreferrer" class="card-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="./nz-rental-market/dashboard/" class="card-link">Live Dashboard <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="https://github.com/AmirmasoudGhorbani/Portfolio/tree/main/nz-rental-market" target="_blank" rel="noreferrer" class="card-link">Code &amp; notebook <span aria-hidden="true" class="arrow">&#8599;</span></a>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="more-head" data-reveal>
+        <h3 class="more-heading">More projects</h3>
+        <span class="more-line" aria-hidden="true"></span>
+      </div>
+      <div class="more-grid" id="more-grid" data-reveal>
+        <!-- Architecture -->
+        <article class="more-card" data-card>
+          <div class="card-media more-thumb">
+            <picture><source type="image/webp" srcset="images/system-architecture-800.webp" sizes="200px"><img src="images/system-architecture.png" alt="Scalable Rental Platform Architecture diagram" width="1600" height="900" loading="lazy" decoding="async"></picture>
+          </div>
+          <div class="more-body">
+            <p class="card-eyebrow">Cloud · AWS · Terraform</p>
+            <h4 class="more-title">Scalable Rental Platform Architecture</h4>
+            <p class="more-desc">An AWS architecture for a rental marketplace, with microservices, queues and search, built to scale under load.</p>
+            <div class="more-links">
+              <a href="./rental-platform-architecture/architecture/index.html" class="more-link">Live demo <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="https://github.com/AmirmasoudGhorbani/rental-platform-architecture" target="_blank" rel="noreferrer" class="more-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
             </div>
           </div>
         </article>
 
         <!-- IoT -->
-        <article class="card work-card span-1" data-card data-glow>
-          <div class="card-media">
-            <picture><source type="image/webp" srcset="images/iot-weather-dashboard-800.webp 800w, images/iot-weather-dashboard-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/iot-weather-dashboard.png" alt="IoT Weather Monitoring Dashboard" width="1600" height="900" loading="lazy" decoding="async"></picture>
-            <span class="card-glow" aria-hidden="true"></span>
+        <article class="more-card" data-card>
+          <div class="card-media more-thumb">
+            <picture><source type="image/webp" srcset="images/iot-weather-dashboard-800.webp" sizes="200px"><img src="images/iot-weather-dashboard.png" alt="IoT Weather Monitoring Dashboard" width="1600" height="900" loading="lazy" decoding="async"></picture>
           </div>
-          <div class="card-body">
-            <p class="card-eyebrow">Data · IoT</p>
-            <h3 class="card-title">IoT Weather Monitoring Dashboard</h3>
-            <p class="card-desc">A real-time data pipeline that streams temperature, humidity, and air quality readings from Raspberry Pi sensors over MQTT and Node-RED into a live dashboard. I built the hardware, the pipeline, and the dashboard myself.</p>
-            <p class="card-role"><span class="muted">Role:</span> Data pipeline, full-stack &amp; hardware</p>
-            <ul class="tag-list">
-              <li class="tag">Raspberry Pi</li><li class="tag">Node-RED</li><li class="tag">MQTT</li><li class="tag">JS</li>
-            </ul>
-            <div class="card-links">
-              <a href="./iot-weather-station/dashboard/index.html" class="card-link">Live Demo <span aria-hidden="true" class="arrow">&#8599;</span></a>
-              <a href="https://github.com/AmirmasoudGhorbani/iot-weather-station" target="_blank" rel="noreferrer" class="card-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
+          <div class="more-body">
+            <p class="card-eyebrow">IoT · MQTT · Node-RED</p>
+            <h4 class="more-title">IoT Weather Monitoring Dashboard</h4>
+            <p class="more-desc">Raspberry Pi sensors streaming into a live dashboard. I built the hardware, the pipeline and the UI.</p>
+            <div class="more-links">
+              <a href="./iot-weather-station/dashboard/index.html" class="more-link">Live demo <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="https://github.com/AmirmasoudGhorbani/iot-weather-station" target="_blank" rel="noreferrer" class="more-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
             </div>
           </div>
         </article>
 
         <!-- Kebab Station -->
-        <article class="card work-card span-1" data-card data-glow>
-          <div class="card-media">
-            <picture><source type="image/webp" srcset="images/kebab-station-800.webp 800w, images/kebab-station-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/kebab-station.png" alt="Kebab Station Kumeu website hero: Carved over fire, served fast" width="1600" height="900" loading="lazy" decoding="async"></picture>
-            <span class="card-glow" aria-hidden="true"></span>
+        <article class="more-card" data-card>
+          <div class="card-media more-thumb">
+            <picture><source type="image/webp" srcset="images/kebab-station-800.webp" sizes="200px"><img src="images/kebab-station.png" alt="Kebab Station Kumeu website" width="1600" height="900" loading="lazy" decoding="async"></picture>
           </div>
-          <div class="card-body">
-            <p class="card-eyebrow">Client · Restaurant Website</p>
-            <h3 class="card-title">Kebab Station Kumeu</h3>
-            <p class="card-desc">The live site for a takeaway kebab shop in Kumeu, Auckland. Customers can browse the menu and combos, read reviews, and build their own kebab with a live order summary and price before calling or ordering on Uber Eats.</p>
-            <p class="card-role"><span class="muted">Role:</span> Designer &amp; frontend developer</p>
-            <ul class="tag-list">
-              <li class="tag">HTML</li><li class="tag">CSS</li><li class="tag">JavaScript</li><li class="tag">Responsive</li><li class="tag">GitHub Actions</li>
-            </ul>
-            <div class="card-links">
-              <a href="https://kebabstationkumeu.com/" target="_blank" rel="noreferrer" class="card-link">Live Site <span aria-hidden="true" class="arrow">&#8599;</span></a>
-              <a href="https://github.com/AmirmasoudGhorbani/Takeaway-food-business" target="_blank" rel="noreferrer" class="card-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
+          <div class="more-body">
+            <p class="card-eyebrow">Client · Restaurant website</p>
+            <h4 class="more-title">Kebab Station Kumeu</h4>
+            <p class="more-desc">The live site for a Kumeu takeaway, with the menu, reviews and an interactive kebab builder.</p>
+            <div class="more-links">
+              <a href="https://kebabstationkumeu.com/" target="_blank" rel="noreferrer" class="more-link">Live site <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="https://github.com/AmirmasoudGhorbani/Takeaway-food-business" target="_blank" rel="noreferrer" class="more-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
             </div>
           </div>
         </article>
 
         <!-- TV Signal -->
-        <article class="card work-card span-1" data-card data-glow>
-          <div class="card-media">
-            <picture><source type="image/webp" srcset="images/tv-signal-website-800.webp 800w, images/tv-signal-website-1600.webp 1570w" sizes="(max-width: 980px) 100vw, 560px"><img src="images/tv-signal-website.png" alt="TV Signal Solutions Website" width="1570" height="905" loading="lazy" decoding="async"></picture>
-            <span class="card-glow" aria-hidden="true"></span>
+        <article class="more-card" data-card>
+          <div class="card-media more-thumb">
+            <picture><source type="image/webp" srcset="images/tv-signal-website-800.webp" sizes="200px"><img src="images/tv-signal-website.png" alt="TV Signal Solutions website" width="1570" height="905" loading="lazy" decoding="async"></picture>
           </div>
-          <div class="card-body">
+          <div class="more-body">
             <p class="card-eyebrow">Client · Frontend</p>
-            <h3 class="card-title">TV Signal Solutions Website</h3>
-            <p class="card-desc">A fast, fully responsive marketing site for a local installation business. I designed and delivered it solo, keeping it accessible, lightweight, and easy for the owner to maintain.</p>
-            <p class="card-role"><span class="muted">Role:</span> Frontend developer</p>
-            <ul class="tag-list">
-              <li class="tag">HTML</li><li class="tag">CSS</li><li class="tag">JavaScript</li><li class="tag">Responsive</li>
-            </ul>
-            <div class="card-links">
-              <a href="https://signal-solution-website.vercel.app" target="_blank" rel="noreferrer" class="card-link">Live Site <span aria-hidden="true" class="arrow">&#8599;</span></a>
-              <a href="https://github.com/AmirmasoudGhorbani/Signal-Solution-Website" target="_blank" rel="noreferrer" class="card-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
+            <h4 class="more-title">TV Signal Solutions Website</h4>
+            <p class="more-desc">A fast, responsive marketing site for an Auckland installation business.</p>
+            <div class="more-links">
+              <a href="https://signal-solution-website.vercel.app" target="_blank" rel="noreferrer" class="more-link">Live site <span aria-hidden="true" class="arrow">&#8599;</span></a>
+              <a href="https://github.com/AmirmasoudGhorbani/Signal-Solution-Website" target="_blank" rel="noreferrer" class="more-link">GitHub <span aria-hidden="true" class="arrow">&#8599;</span></a>
             </div>
           </div>
         </article>

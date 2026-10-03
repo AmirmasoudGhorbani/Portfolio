@@ -25,6 +25,7 @@
     initReveal();
     initGlowCards();
     initStagger(document.getElementById("work-grid"), "[data-card]", 90);
+    initStagger(document.getElementById("more-grid"), "[data-card]", 70);
     initStagger(document.getElementById("tech-wrap"), "[data-tech]", 45);
     initContactForm();
     initProjectImages();
