@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NZ Earthquakes · Amir Ghorbani</title>
+<meta name="description" content="26 years of GeoNet earthquake data, modelled in SQL and Python: where New Zealand's quakes strike, how often, how aftershocks fade, and a live feed.">
+<link rel="canonical" href="https://amirghorbani.dev/nz-earthquakes/dashboard/">
+<meta property="og:title" content="Three in four New Zealand earthquakes are aftershocks · NZ earthquake analysis">
+<meta property="og:description" content="175,000 quakes from the GeoNet catalogue: a live feed, the plate boundary in 3D, aftershock decay, and a data-quality catch from 2012.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://amirghorbani.dev/nz-earthquakes/dashboard/">
+<meta property="og:image" content="https://amirghorbani.dev/nz-earthquakes/dashboard/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://amirghorbani.dev/nz-earthquakes/dashboard/og-image.jpg">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="../../assets/ag-logo-112.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.geonet.org.nz">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="quakes.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav class="portfolio-nav" aria-label="Portfolio">
+  <a href="https://amirghorbani.dev" class="portfolio-nav__back">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    amirghorbani.dev
+  </a>
+  <span class="portfolio-nav__label">NZ Earthquakes</span>
+</nav>
+
+<main id="main" class="wrap">
+
+  <header class="intro">
+    <p class="eyebrow">Data analysis · GeoNet earthquake catalogue · 2000 to <span data-latest>Oct 2026</span></p>
+    <h1>Three in four New Zealand earthquakes are aftershocks.</h1>
+    <p class="lede">GeoNet locates around 20,000 earthquakes a year in and around New Zealand. I modelled 175,000 of them, every magnitude 2.5 or larger since 2000, to find out where they strike, how often the big ones come, and how quickly the shaking dies away. Strip out the aftershocks and the country's background rate is remarkably steady. The catalogue also hides a trap: in 2012 the way magnitudes were measured changed.</p>
+  </header>
+
+  <!-- ===================== LIVE ===================== -->
+  <section class="panel live" aria-labelledby="live-h">
+    <div class="panel-head">
+      <div>
+        <p class="flag-label live-label"><span class="pulse" aria-hidden="true"></span>Live from GeoNet</p>
+        <h2 id="live-h">Right now</h2>
+        <p class="panel-sub" id="live-sub">The latest quakes GeoNet has located, loaded straight from its public API when you open this page.</p>
+      </div>
+    </div>
+    <div class="live-grid">
+      <div>
+        <div class="tiles live-tiles" id="live-tiles" aria-live="polite"></div>
+        <h3 class="mini-h">Latest quakes</h3>
+        <ol class="quake-list" id="live-list"><li class="muted-li">Loading…</li></ol>
+      </div>
+      <div class="chart map" id="live-map" style="--h: 560px"></div>
+    </div>
+    <h3 class="mini-h">Quakes located per day, past year</h3>
+    <div class="chart" id="live-daily" style="--h: 150px"></div>
+    <p class="note" id="live-note"></p>
+  </section>
+
+  <section class="tiles" aria-label="Headline figures" id="tiles"></section>
+
+  <section class="findings" aria-labelledby="findings-h">
+    <h2 id="findings-h" class="sr-only">Key findings</h2>
+    <article class="finding">
+      <h3>Mostly aftershocks</h3>
+      <p>Of 27,900 magnitude 3+ quakes since 2012, only 24% are mainshocks. Remove the aftershocks and the yearly count holds at about 400–500. 2016 had 4,816 M3+ quakes but just 424 mainshocks.</p>
+    </article>
+    <article class="finding">
+      <h3>Each step up is about 7.6 times rarer</h3>
+      <p>The magnitude–frequency slope (b-value) is 0.88. New Zealand averages about 26 M5+ quakes a year, two M6+, and an M7+ every few years.</p>
+    </article>
+    <article class="finding">
+      <h3>Kaikōura faded fast</h3>
+      <p>The M7.8 produced 522 aftershocks of M3.5+ in its first day. Its decay exponent of 1.31 means that a month later, the daily rate was under 2% of day one.</p>
+    </article>
+    <article class="finding">
+      <h3>The ruler changed in 2012</h3>
+      <p>Before 2012, GeoNet's old system recorded twice as many M3+ quakes a year, but the same number of M5+. The country didn't get calmer: small quakes were rated about 0.35 magnitude lower after the switch.</p>
+    </article>
+  </section>
+
+  <!-- ===================== MAP + SECTION ===================== -->
+  <div class="grid-map">
+    <section class="panel" aria-labelledby="map-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="map-h">Where they strike</h2>
+          <p class="panel-sub">Every quake of magnitude 4 or more since 2000, coloured by depth. Circle size shows magnitude.</p>
+        </div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Minimum magnitude" id="map-mag">
+            <button type="button" data-v="4" aria-pressed="true">M4+</button>
+            <button type="button" data-v="5" aria-pressed="false">M5+</button>
+            <button type="button" data-v="6" aria-pressed="false">M6+</button>
+          </div>
+        </div>
+      </div>
+      <div class="chips" id="map-depth" role="group" aria-label="Depth bands"></div>
+      <div class="chart map" id="chart-map" style="--h: 640px"></div>
+      <p class="note">Shallow quakes (lightest) follow the plate boundary from East Cape to Fiordland. The deep ones (darkest) under the central North Island sit on the Pacific plate as it dives westward. The dashed line marks the cross-section.</p>
+    </section>
+
+    <div class="stack">
+      <section class="panel" aria-labelledby="section-h">
+        <div class="panel-head">
+          <div>
+            <h2 id="section-h">The plate diving under the North Island</h2>
+            <p class="panel-sub">Quakes within 50 km of the dashed line on the map, 2012–2025, by distance from the Hikurangi trench and depth.</p>
+          </div>
+        </div>
+        <div class="chart" id="chart-section" style="--h: 320px"></div>
+        <p class="note">Quakes line up along a sloping band: the top of the Pacific plate, sinking from the trench off Hawke's Bay to more than 200 km deep west of Taupō, before the quakes stop short of Taranaki.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="largest-h">
+        <div class="panel-head">
+          <div>
+            <h2 id="largest-h">The largest since 2000</h2>
+            <p class="panel-sub">NZ dates. Location as described by GeoNet.</p>
+          </div>
+        </div>
+        <div class="table-wrap short" tabindex="0" role="region" aria-label="Largest quakes table"><table class="mini-table" id="table-largest"></table></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ===================== HOW OFTEN ===================== -->
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="gr-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="gr-h">How often each size comes</h2>
+          <p class="panel-sub">Average quakes a year at or above each magnitude, 2012–2025, on a log scale. The dashed line is the Gutenberg–Richter fit.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-gr" style="--h: 320px"></div>
+      <p class="note" id="gr-note"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="omori-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="omori-h">How aftershocks fade</h2>
+          <p class="panel-sub">Aftershocks of M3.5+ per day after the mainshock, both axes on a log scale. The dashed line is the fitted Omori law.</p>
+        </div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Sequence" id="omori-seq">
+            <button type="button" data-v="kaikoura" aria-pressed="true">Kaikōura 2016</button>
+            <button type="button" data-v="darfield" aria-pressed="false">Darfield 2010</button>
+          </div>
+        </div>
+      </div>
+      <div class="chart" id="chart-omori" style="--h: 320px"></div>
+      <p class="note" id="omori-note"></p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="decl-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="decl-h">Take out the aftershocks and the background is steady</h2>
+        <p class="panel-sub">Quakes of M3+ per month, all events and mainshocks only (Gardner–Knopoff declustering), 2012 to <span data-latest-month>Sep 2026</span>.</p>
+      </div>
+    </div>
+    <div class="chart" id="chart-decl" style="--h: 300px"></div>
+    <div class="legend" id="legend-decl"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="cities-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="cities-h">What's normal near you</h2>
+        <p class="panel-sub">Shallow quakes (under 40 km deep) within 100 km of each city, 2012–2025. Mainshocks only, so one big sequence doesn't swamp the count.</p>
+      </div>
+    </div>
+    <div class="table-wrap tall" tabindex="0" role="region" aria-label="City table"><table class="dtable" id="table-cities"></table></div>
+    <p class="note">A magnitude 5 quake 100 km away is usually felt but rarely damaging. These are observed rates over 14 years, not a hazard forecast; for that, see GNS Science's <a href="https://www.gns.cri.nz/research-projects/national-seismic-hazard-model/" target="_blank" rel="noreferrer">National Seismic Hazard Model</a>.</p>
+  </section>
+
+  <!-- ===================== DATA QUALITY ===================== -->
+  <div class="grid-2">
+    <section class="panel panel-flag" aria-labelledby="scale-h">
+      <div class="panel-head">
+        <div>
+          <p class="flag-label">Data-quality note</p>
+          <h2 id="scale-h">The ruler changed in 2012</h2>
+          <p class="panel-sub">Quakes a year at M3+ and M5+, each indexed to its own 2000–2011 average (= 100).</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-scale" style="--h: 260px"></div>
+      <div class="legend" id="legend-scale"></div>
+      <p class="note" id="scale-note"></p>
+    </section>
+
+    <section class="panel panel-flag" aria-labelledby="hours-h">
+      <div class="panel-head">
+        <div>
+          <p class="flag-label">Data-quality note</p>
+          <h2 id="hours-h">Quakes ignore the clock. The catalogue doesn't.</h2>
+          <p class="panel-sub">Events by hour of day, NZ time.</p>
+        </div>
+      </div>
+      <h3 class="mini-h">Small quakes (M2.5–3), 2012–2025</h3>
+      <div class="chart" id="chart-hours-q" style="--h: 130px"></div>
+      <h3 class="mini-h">Quarry blasts, 2000–2026</h3>
+      <div class="chart" id="chart-hours-b" style="--h: 130px"></div>
+      <p class="note" id="hours-note"></p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="types-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="types-h">Not everything in an earthquake catalogue is an earthquake</h2>
+        <p class="panel-sub">Every event of M2.5+ that GeoNet recorded since 2000, by type, with the largest of each. Only earthquakes (and events of unknown type) in the New Zealand region are analysed here.</p>
+      </div>
+    </div>
+    <div class="table-wrap tall" tabindex="0" role="region" aria-label="Event types table"><table class="mini-table" id="table-types"></table></div>
+  </section>
+
+  <section class="method" aria-labelledby="method-h">
+    <h2 id="method-h">How this was built</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Data</h3>
+        <p>The <a href="https://www.geonet.org.nz/data/access/FDSN" target="_blank" rel="noreferrer">GeoNet FDSN event service</a>: every event of M2.5+ since January 2000, fetched a year at a time (busy years in halves, as the service caps requests at 10,000 events). The study region is 34–48°S, 165–180°E. The live panel calls GeoNet's public <a href="https://api.geonet.org.nz/" target="_blank" rel="noreferrer">quake API</a> from your browser.</p>
+      </div>
+      <div>
+        <h3>Model</h3>
+        <p>Loaded, typed and de-duplicated in <strong>DuckDB</strong> with SQL, then analysed in Python. Declustering uses Gardner–Knopoff windows, which are generous, so some independent quakes count as aftershocks. The b-value is Aki's maximum-likelihood estimate above M3.0 with a 500-sample bootstrap; Omori fits are maximum likelihood from 1.2 hours to the end of each window.</p>
+      </div>
+      <div>
+        <h3>Checks</h3>
+        <p>Rates and the b-value use 2012–2025 only, after the 2012 magnitude change. The b-value is stable (0.88–0.93) for cut-offs from M2.6 to M3.6. The first 1.2 hours after a big quake are left out of aftershock fits, because small aftershocks are missed in the coda of large ones.</p>
+      </div>
+    </div>
+    <p class="source">Source: <span data-source></span>. Coastline: Natural Earth. Code: <a href="https://github.com/AmirmasoudGhorbani/Portfolio/tree/main/nz-earthquakes" target="_blank" rel="noreferrer">SQL model, pipeline and dashboard on GitHub</a> · <a href="https://github.com/AmirmasoudGhorbani/Portfolio/blob/main/nz-earthquakes/notebooks/analysis.ipynb" target="_blank" rel="noreferrer">analysis notebook</a>.</p>
+  </section>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="status" aria-live="polite" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>

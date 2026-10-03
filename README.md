@@ -23,6 +23,8 @@ A single-page portfolio built with vanilla HTML, CSS and JavaScript, with no bui
 | Project | Description | Links |
 |---------|-------------|-------|
 | **AI Strawberry Disease Detection** | Master's thesis: hybrid YOLOv9 + DETR model for disease and ripeness detection, about 90% accuracy across 9,000+ images | [Repo](https://github.com/AmirmasoudGhorbani/hybrid-yolov9-detr-strawberry-disease) |
+| **NZ Rental Market Analysis** | 33 years of MBIE rental bond data modelled in SQL (DuckDB) and adjusted for inflation: rents have stalled and are falling in real terms | [Dashboard](https://amirghorbani.dev/nz-rental-market/dashboard/) · [Code](nz-rental-market/) |
+| **NZ Earthquake Analysis** | 175,000 GeoNet quakes modelled in SQL and Python, with declustering, aftershock-decay fits, a data-quality catch from 2012 and a live API feed | [Dashboard](https://amirghorbani.dev/nz-earthquakes/dashboard/) · [Code](nz-earthquakes/) |
 | **Scalable Rental Platform** | Interactive AWS architecture diagram with animated request tracing and Terraform IaC | [Live Demo](https://amirghorbani.dev/rental-platform-architecture/architecture/) · [Repo](https://github.com/AmirmasoudGhorbani/rental-platform-architecture) |
 | **IoT Weather Monitoring** | Real-time data pipeline from Raspberry Pi sensors over MQTT and Node-RED into a live dashboard, with live Auckland weather data | [Live Demo](https://amirghorbani.dev/iot-weather-station/dashboard/) · [Repo](https://github.com/AmirmasoudGhorbani/iot-weather-station) |
 | **TV Signal Solutions Website** | Responsive marketing site for a local Auckland installation business | [Live Site](https://signal-solution-website.vercel.app) · [Repo](https://github.com/AmirmasoudGhorbani/Signal-Solution-Website) |
@@ -58,6 +60,8 @@ Portfolio/
 │   ├── ag-logo-*, icon-*.png           # logo and app icons
 │   └── Amir-Ghorbani-CV.pdf            # downloadable CV
 ├── images/                             # project screenshots (WebP + PNG), portrait, share image
+├── nz-rental-market/                   # rental data analysis: SQL model, pipeline, dashboard
+├── nz-earthquakes/                     # earthquake analysis: SQL model, pipeline, live dashboard
 ├── iot-weather-station/                # IoT dashboard (subpage)
 │   ├── dashboard/
 │   ├── firmware/
