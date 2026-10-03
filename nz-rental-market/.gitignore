@@ -1,0 +1,3 @@
+# Rebuilt from data/raw by the SQL scripts
+data/processed/*.duckdb
+data/processed/*.duckdb.wal

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NZ Rental Market · Amir Ghorbani</title>
+<meta name="description" content="An analysis of 33 years of New Zealand rental bond data: rents have stalled since 2024 as supply grew, cities are cooling while the regions keep climbing.">
+<link rel="canonical" href="https://amirghorbani.dev/nz-rental-market/dashboard/">
+<meta property="og:title" content="NZ rents have stalled, and in real terms they're falling · NZ rental market analysis">
+<meta property="og:description" content="33 years of MBIE rental bond data, modelled in SQL: national and regional trends, seasonality, and a data-quality catch.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://amirghorbani.dev/nz-rental-market/dashboard/">
+<meta property="og:image" content="https://amirghorbani.dev/nz-rental-market/dashboard/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://amirghorbani.dev/nz-rental-market/dashboard/og-image.jpg">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="../../assets/ag-logo-112.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav class="portfolio-nav" aria-label="Portfolio">
+  <a href="https://amirghorbani.dev" class="portfolio-nav__back">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    amirghorbani.dev
+  </a>
+  <span class="portfolio-nav__label">NZ Rental Market</span>
+</nav>
+
+<main id="main" class="wrap">
+
+  <header class="intro">
+    <p class="eyebrow">Data analysis · MBIE rental bond data · Feb 1993 to <span data-latest>Jul 2026</span></p>
+    <h1>New Zealand rents have stalled. In real terms, they're falling.</h1>
+    <p class="lede">After more than a decade of rises every single year, the national median rent has sat at about $590–600 a week since 2024. Tenancies kept growing, the big cities started to cool, and the regions kept climbing. Adjusted for inflation, the typical new tenancy now costs 8% less than at its 2022 peak. Here's what 33 years of bond data shows.</p>
+  </header>
+
+  <section class="tiles" aria-label="Headline figures" id="tiles"></section>
+
+  <section class="findings" aria-labelledby="findings-h">
+    <h2 id="findings-h" class="sr-only">Key findings</h2>
+    <article class="finding">
+      <h3>Flat in dollars, falling in real terms</h3>
+      <p>Growth fell from 6.5% a year in mid-2023 to zero, the first flat spell since 2009–10. Prices rose 6.9% over the last two years, so real rents fell 6.7%, and are 8% below their 2022 peak.</p>
+    </article>
+    <article class="finding">
+      <h3>But supply isn't the local story</h3>
+      <p>Tenancies grew 6–8% a year nationally, yet across 43 districts, faster tenancy growth shows no link to slower rent growth (r = 0.07). The slowdown looks nationwide, not driven by local supply.</p>
+    </article>
+    <article class="finding">
+      <h3>Cities cool, regions climb</h3>
+      <p>Wellington City is down 6% in two years and Auckland is flat, while the West Coast, Southland, Dunedin and Central Otago are up 9–12%.</p>
+    </article>
+    <article class="finding">
+      <h3>The cheap end is squeezed</h3>
+      <p>Upper-quartile rent was 1.73× the lower quartile in 2015 and is 1.44× now. The cheapest rentals have risen fastest.</p>
+    </article>
+  </section>
+
+  <section class="panel" aria-labelledby="trend-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="trend-h">Weekly rent, 1993 to today</h2>
+        <p class="panel-sub">Median weekly rent for new bonds, 12-month average. Compare up to three regions with New Zealand.</p>
+      </div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Time range" id="range">
+          <button type="button" data-range="all" aria-pressed="true">All</button>
+          <button type="button" data-range="10" aria-pressed="false">10 yrs</button>
+          <button type="button" data-range="5" aria-pressed="false">5 yrs</button>
+        </div>
+      </div>
+    </div>
+    <div class="chips" id="region-chips" role="group" aria-label="Regions to compare"></div>
+    <div class="chart" id="chart-trend" style="--h: 360px"></div>
+    <details class="data-view"><summary>View the data as a table</summary><div id="table-trend"></div></details>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="real-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="real-h">In today's dollars, rents peaked in 2022</h2>
+          <p class="panel-sub">Median weekly rent for new tenancies, quarterly, as paid (nominal) and adjusted for inflation into June 2026 dollars (real).</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-real" style="--h: 280px"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="index-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="index-h">New-tenancy rents rose faster than sitting tenants'</h2>
+          <p class="panel-sub">Growth since June 2018 (= 100): rents for new tenancies (bond data), rents for all tenants (CPI rentals), and prices overall (CPI).</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-index" style="--h: 280px"></div>
+      <p class="note" id="index-note"></p>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="multiples-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="multiples-h">Every region at a glance</h2>
+        <p class="panel-sub">Median weekly rent since 2015 (12-month average) on a shared scale, against New Zealand (dashed). Sorted by 2-year change. Select a region to add it to the chart above.</p>
+      </div>
+    </div>
+    <div class="multiples" id="multiples"></div>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="supply-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="supply-h">Rents stalled while tenancies kept growing</h2>
+          <p class="panel-sub">Year-on-year change: median rent (12-month average) and active tenancies, New Zealand.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-supply" style="--h: 300px"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="growth-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="growth-h">Who's rising, who's falling</h2>
+          <p class="panel-sub">Change in median weekly rent by region (12-month average).</p>
+        </div>
+        <div class="seg" role="group" aria-label="Period" id="growth-period">
+          <button type="button" data-p="growth_1y_pct" aria-pressed="false">1 yr</button>
+          <button type="button" data-p="growth_2y_pct" aria-pressed="true">2 yrs</button>
+          <button type="button" data-p="growth_5y_pct" aria-pressed="false">5 yrs</button>
+        </div>
+      </div>
+      <div class="chart" id="chart-growth" style="--h: auto"></div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="scatter-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="scatter-h">Does more supply mean cheaper rent? Not locally.</h2>
+        <p class="panel-sub">Each dot is a district or city: growth in active tenancies (across) against growth in median rent (up), both over 2 years. If local supply drove rents, the dots would slope downwards.</p>
+      </div>
+    </div>
+    <div class="chart" id="chart-scatter" style="--h: 400px"></div>
+    <p class="note" id="scatter-note"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="district-h">
+    <div class="panel-head">
+      <div>
+        <h2 id="district-h">Districts and cities</h2>
+        <p class="panel-sub">43 areas with at least 30 new bonds a month. Click a column to sort.</p>
+      </div>
+      <label class="search"><span class="sr-only">Search districts</span>
+        <input type="search" id="district-search" placeholder="Search a district or city" autocomplete="off">
+      </label>
+    </div>
+    <div class="table-wrap">
+      <table class="dtable" id="district-table">
+        <thead><tr>
+          <th scope="col" data-k="location" aria-sort="none"><button type="button">District or city</button></th>
+          <th scope="col" data-k="median_12m_now" class="num" aria-sort="descending"><button type="button">Weekly rent</button></th>
+          <th scope="col" data-k="growth_2y_pct" class="num" aria-sort="none"><button type="button">2-yr change</button></th>
+          <th scope="col" data-k="growth_5y_pct" class="num" aria-sort="none"><button type="button">5-yr change</button></th>
+          <th scope="col" data-k="active_2y_pct" class="num" aria-sort="none"><button type="button">Tenancies, 2 yrs</button></th>
+          <th scope="col" data-k="bonds_per_month" class="num" aria-sort="none"><button type="button">New bonds / month</button></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="season-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="season-h">The rental season</h2>
+          <p class="panel-sub">New tenancies by calendar month vs the yearly trend, 2010–2019 average. Summer is moving season.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-season" style="--h: 260px"></div>
+      <p class="note" id="season-note"></p>
+    </section>
+
+    <section class="panel" aria-labelledby="spread-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="spread-h">The gap is closing from below</h2>
+          <p class="panel-sub">Upper-quartile rent divided by lower-quartile rent, New Zealand. Lower means cheap rentals are catching up.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-spread" style="--h: 260px"></div>
+    </section>
+  </div>
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="beds-h">
+      <div class="panel-head">
+        <div>
+          <h2 id="beds-h">Houses by number of bedrooms</h2>
+          <p class="panel-sub">Median weekly rent for houses, New Zealand, 2020 Q1 to 2024 Q3.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-beds" style="--h: 280px"></div>
+    </section>
+
+    <section class="panel panel-flag" aria-labelledby="quality-h">
+      <div class="panel-head">
+        <div>
+          <p class="flag-label">Data-quality note</p>
+          <h2 id="quality-h">Why the bedroom chart stops in 2024</h2>
+          <p class="panel-sub">Share of new bonds recorded as 1 bedroom, or with no bedroom count.</p>
+        </div>
+      </div>
+      <div class="chart" id="chart-quality" style="--h: 220px"></div>
+      <p class="note">From 2024 Q4 the share of bonds with no bedroom count jumps from about 7% to 27%. From 2025 Q4 those unknowns appear to be recorded as "1 bedroom", whose share leaps from 14% to 54%, which is why 1-bed houses suddenly show the same rent as 3-beds. This looks like a change in how bonds are recorded, not a market shift. Totals are unaffected, so only the bedroom breakdowns are cut off at 2024 Q3.</p>
+    </section>
+  </div>
+
+  <section class="method" aria-labelledby="method-h">
+    <h2 id="method-h">How this was built</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Data</h3>
+        <p>Three public CSVs from <a href="https://www.tenancy.govt.nz/about-tenancy-services/data-and-statistics/rental-bond-data/" target="_blank" rel="noreferrer">Tenancy Services (MBIE)</a>: monthly bonds by district and by region since 1993, and quarterly bonds by dwelling type and bedrooms since 2020. Inflation adjustment uses Stats NZ's consumers price index (all groups, and actual rentals for housing), June 2018 to June 2026. Elsewhere rents are nominal, as paid.</p>
+      </div>
+      <div>
+        <h3>Model</h3>
+        <p>Loaded and typed in <strong>DuckDB</strong> with SQL. Growth uses 12-month trailing averages so seasonality doesn't distort comparisons, built with window functions. Seasonality is each month's ratio to a centred 12-month average over 2010–2019.</p>
+      </div>
+      <div>
+        <h3>Checks</h3>
+        <p>District totals reconcile with region totals (51,819 vs 51,813 Wellington tenancies). Bonds with no recorded area are excluded. Bedroom data after 2024 Q3 is excluded after a coding change, documented above.</p>
+      </div>
+    </div>
+    <p class="source">Source: <span data-source></span>. Code: <a href="https://github.com/AmirmasoudGhorbani/Portfolio/tree/main/nz-rental-market" target="_blank" rel="noreferrer">SQL model, pipeline and dashboard on GitHub</a>.</p>
+  </section>
+
+</main>
+
+<div class="tooltip" id="tooltip" role="status" aria-live="polite" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>
