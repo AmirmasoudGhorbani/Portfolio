@@ -26,6 +26,7 @@ A single-page portfolio built with vanilla HTML, CSS and JavaScript, with no bui
 | **Scalable Rental Platform** | Interactive AWS architecture diagram with animated request tracing and Terraform IaC | [Live Demo](https://amirghorbani.dev/rental-platform-architecture/architecture/) · [Repo](https://github.com/AmirmasoudGhorbani/rental-platform-architecture) |
 | **IoT Weather Monitoring** | Real-time data pipeline from Raspberry Pi sensors over MQTT and Node-RED into a live dashboard, with live Auckland weather data | [Live Demo](https://amirghorbani.dev/iot-weather-station/dashboard/) · [Repo](https://github.com/AmirmasoudGhorbani/iot-weather-station) |
 | **TV Signal Solutions Website** | Responsive marketing site for a local Auckland installation business | [Live Site](https://signal-solution-website.vercel.app) · [Repo](https://github.com/AmirmasoudGhorbani/Signal-Solution-Website) |
+| **Kebab Station Kumeu** | Live site for a Kumeu takeaway, with menu, reviews and an interactive kebab builder | [Live Site](https://kebabstationkumeu.com/) · [Repo](https://github.com/AmirmasoudGhorbani/Takeaway-food-business) |
 
 ## Tech Stack
 
