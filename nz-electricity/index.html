@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NZ Electricity Lakehouse · Amir Ghorbani</title>
+<meta name="description" content="A Databricks lakehouse for 30 years of New Zealand wholesale electricity prices: 128 million rows, bronze/silver/gold Delta tables, data-quality rules, an automated job and a dashboard.">
+<link rel="canonical" href="https://amirghorbani.dev/nz-electricity/">
+<meta property="og:title" content="When NZ's hydro lakes run low, power costs three times as much · Databricks lakehouse">
+<meta property="og:description" content="128 million half-hourly prices since 1996, modelled on Databricks with PySpark and Delta Lake.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://amirghorbani.dev/nz-electricity/">
+<meta property="og:image" content="https://amirghorbani.dev/nz-electricity/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://amirghorbani.dev/nz-electricity/img/og-image.jpg">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="../assets/ag-logo-112.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .fig { margin: 0; }
+  .shot { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .fig figcaption { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 9px 2px 0; }
+  .fig figcaption .k { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 4px 2px 0; }
+  .tables-fig { max-width: 342px; margin: 0 auto; }
+  .finding-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 24px; align-items: center; }
+  .finding-row + .finding-row { margin-top: 26px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .finding-row h3 { font-size: 18px; margin-bottom: 8px; }
+  .finding-row p { margin: 0; color: var(--text-dim); font-size: 15px; }
+  .finding-row .big { font: 600 30px var(--font-display); color: var(--text); display: block; margin-bottom: 6px; letter-spacing: -.3px; }
+  .finding-row.wide { grid-template-columns: 1fr; gap: 16px; }
+  .finding-row.wide > div:first-child { display: grid; grid-template-columns: minmax(180px, .5fr) minmax(0, 1.5fr); gap: 8px 32px; align-items: start; }
+  .finding-row.wide > div:first-child .big { grid-row: span 2; margin: 0; }
+  .finding-row.wide h3 { margin: 0; }
+  @media (max-width: 860px) { .finding-row, .finding-row.wide > div:first-child { grid-template-columns: 1fr; gap: 14px; } }
+  .arch { width: 100%; height: auto; display: block; }
+  .arch .box { fill: var(--surface-2); stroke: rgba(255,255,255,.14); }
+  .arch .bronze { stroke: #b07a46; } .arch .silver { stroke: #a9b0b8; } .arch .gold { stroke: var(--gold); }
+  .arch .t { font: 600 13px var(--font-body); fill: var(--text); }
+  .arch .s { font: 11.5px var(--font-body); fill: var(--muted); }
+  .arch .tag { font: 500 10.5px var(--font-mono); letter-spacing: 1.2px; fill: var(--muted-2); text-transform: uppercase; }
+  .arch .edge { stroke: rgba(255,255,255,.32); stroke-width: 1.4; fill: none; }
+  .arch .edge-q { stroke: rgba(230,103,103,.6); stroke-dasharray: 4 3; }
+  .arch .lbl { font: 500 10px var(--font-mono); fill: var(--gold); }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: 1px solid rgba(255,255,255,.14); font-weight: 600; font-size: 14px; text-decoration: none; color: var(--text); }
+  .btn:hover { border-color: rgba(239,90,30,.55); color: #ff7d3a; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #140802; }
+  .btn.primary:hover { background: #ff7d3a; color: #140802; }
+  .rules td code, .note code, .method code { font: 12.5px var(--font-mono); color: var(--text); }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .stack span { padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); font: 12px var(--font-mono); color: var(--text-dim); }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<nav class="portfolio-nav" aria-label="Portfolio">
+  <a href="https://amirghorbani.dev" class="portfolio-nav__back">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    amirghorbani.dev
+  </a>
+  <span class="portfolio-nav__label">NZ Electricity Lakehouse</span>
+</nav>
+
+<main id="main" class="wrap">
+
+  <header class="intro">
+    <p class="eyebrow">Data engineering · Databricks · Oct 1996 to Aug 2026</p>
+    <h1>When New Zealand's hydro lakes run low, power costs three times as much.</h1>
+    <p class="lede">I built a Databricks lakehouse for 30 years of wholesale electricity prices: 128 million half-hourly prices at 317 points on the national grid, joined to daily storage in the country's ten main hydro lakes. Raw files flow through bronze, silver and gold Delta tables with data-quality rules at every step, an automated job runs it all, and a dashboard tells the story.</p>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/AmirmasoudGhorbani/nz-electricity-lakehouse" target="_blank" rel="noreferrer">Code on GitHub <span aria-hidden="true">&#8599;</span></a>
+      <a class="btn" href="#architecture">How it's built</a>
+    </div>
+  </header>
+
+  <section class="tiles" aria-label="Headline figures">
+    <div class="tile"><span class="tile-label">Half-hourly prices</span><span class="tile-value">128<small>M</small></span><span class="tile-sub">359 monthly files, 3.6 GB raw</span></div>
+    <div class="tile"><span class="tile-label">Grid points</span><span class="tile-value">317</span><span class="tile-sub">plus 10 hydro lakes, daily</span></div>
+    <div class="tile"><span class="tile-label">Rows quarantined</span><span class="tile-value">123,745</span><span class="tile-sub">placeholder prices, kept with a reason</span></div>
+    <div class="tile"><span class="tile-label">Incremental run</span><span class="tile-value">2.3<small>min</small></span><span class="tile-sub">bronze 34s · silver 52s · gold 51s</span></div>
+  </section>
+
+  <!-- ===================== FINDINGS ===================== -->
+  <section class="panel" aria-labelledby="findings-h">
+    <div class="panel-head"><div>
+      <h2 id="findings-h">What the data says</h2>
+      <p class="panel-sub">Charts from the Databricks dashboard built on the gold tables. Prices are wholesale, in NZD per megawatt-hour, not adjusted for inflation.</p>
+    </div></div>
+
+    <div class="finding-row wide">
+      <div>
+        <span class="big">$152 vs $48</span>
+        <h3>Low lakes, high prices</h3>
+        <p>More than half of New Zealand's electricity comes from hydro. In months when national lake storage is below 70% of normal for the time of year, Auckland's wholesale price averages $152/MWh; above 115% of normal it's $48. In August 2024 the lakes were at 49% of normal and the price averaged $452. A month later, after rain, storage was 112% and the price fell to $80.</p>
+      </div>
+      <figure class="fig"><div class="shot"><img src="img/chart-storage.webp" alt="Bar chart: average price falls from $152 when storage is under 70% of normal to $48 when it's over 115%" width="1446" height="380" loading="lazy" decoding="async"></div><figcaption>Average monthly price at Otahuhu (NZD/MWh), grouped by national hydro storage as a percentage of normal for the time of year. 339 months, October 1996 to December 2024.</figcaption></figure>
+    </div>
+
+    <div class="finding-row wide">
+      <div>
+        <span class="big">2018 →</span>
+        <h3>A new price level</h3>
+        <p>From 1996 to 2017, annual averages were mostly $40–80/MWh, with spikes in dry years such as 2001, 2003 and 2008. Since 2018 they've sat at $110–200, and 2024 was the record at $200 on average. Across 339 months, price and storage correlate at −0.46 (−0.62 on log prices).</p>
+      </div>
+      <figure class="fig"><div class="shot"><img src="img/chart-prices.webp" alt="Line chart of monthly prices at Otahuhu and Benmore since 1996, with spikes in 2001, 2003, 2008 and a much higher level since 2018 peaking in 2024" width="1295" height="388" loading="lazy" decoding="async"></div><figcaption>Monthly average price, NZD/MWh: <span class="k" style="background:#096f92"></span>Otahuhu (Auckland) and <span class="k" style="background:#ffa100"></span>Benmore (South Island).</figcaption></figure>
+    </div>
+
+    <div class="finding-row wide">
+      <div>
+        <span class="big">800</span>
+        <h3>Half-hours over $500 in 2024</h3>
+        <p>Price spikes used to be rare. 2018, 2021 and 2024 each had hundreds of half-hours above $500/MWh at Otahuhu, and 2024 had more than twice as many as any year before it.</p>
+      </div>
+      <figure class="fig"><div class="shot"><img src="img/chart-spikes.webp" alt="Bar chart of half-hours above $500 per year: small until 2017, then 346 in 2018, 259 in 2021 and 800 in 2024" width="1445" height="329" loading="lazy" decoding="async"></div><figcaption>Half-hours each year with a price above $500/MWh at Otahuhu. 2026 runs to August.</figcaption></figure>
+    </div>
+
+    <div class="finding-row">
+      <div>
+        <span class="big">+$8 → −$19</span>
+        <h3>Dry years flip the islands</h3>
+        <p>Auckland usually pays about $8/MWh more than Benmore in the South Island, where most hydro is. When the southern lakes run dry the gap reverses: in 2008, with storage at 75% of normal, Benmore was $19 dearer. The spread tracks storage (r = 0.52).</p>
+      </div>
+      <figure class="fig"><div class="shot"><img src="img/chart-spread.webp" alt="Scatter of monthly north-south price spread against hydro storage: below 70% of normal, many months fall far below zero" width="716" height="314" loading="lazy" decoding="async"></div><figcaption>Each dot is a month. Across: hydro storage as a percentage of normal. Up: Otahuhu price minus Benmore price, NZD/MWh. Below zero, the South Island is dearer.</figcaption></figure>
+    </div>
+
+    <div class="finding-row">
+      <div>
+        <span class="big">6pm</span>
+        <h3>The evening peak</h3>
+        <p>Over the last year, prices peak between 5pm and 7pm in every season, with a smaller morning peak at 7–8am. Summer nights fell to $6–12/MWh, while autumn 2026 ran at $90–145 all day.</p>
+      </div>
+      <figure class="fig"><div class="shot"><img src="img/chart-hourly.webp" alt="Line chart of average price by hour of day for each season, with peaks at 7am and 5 to 7pm" width="717" height="328" loading="lazy" decoding="async"></div><figcaption>Average Otahuhu price (NZD/MWh) by hour of day and season, September 2025 to August 2026.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ===================== ARCHITECTURE ===================== -->
+  <section class="panel" id="architecture" aria-labelledby="arch-h">
+    <div class="panel-head"><div>
+      <h2 id="arch-h">How it's built</h2>
+      <p class="panel-sub">A medallion lakehouse on Databricks, deployed from GitHub as code.</p>
+    </div></div>
+    <svg class="arch" viewBox="0 0 1100 330" role="img" aria-labelledby="arch-title arch-desc">
+      <title id="arch-title">Pipeline architecture</title>
+      <desc id="arch-desc">Electricity Authority files land in a Unity Catalog volume. Auto Loader loads new price files into bronze. Silver validates, de-duplicates and merges the rows, sending failures to a quarantine table. Gold builds analysis tables used by the dashboard. A file-arrival trigger runs the job, which is deployed from GitHub as an Asset Bundle.</desc>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,.5)"/></marker></defs>
+      <text class="tag" x="20" y="34">Source</text>
+      <rect class="box" x="20" y="48" width="165" height="104" rx="10"/>
+      <text class="t" x="34" y="74">Electricity Authority</text>
+      <text class="s" x="34" y="94">359 monthly price files</text>
+      <text class="s" x="34" y="112">hydro lake storage</text>
+      <text class="s" x="34" y="130">grid points table</text>
+
+      <text class="tag" x="215" y="34">Landing zone</text>
+      <rect class="box" x="215" y="48" width="135" height="104" rx="10"/>
+      <text class="t" x="229" y="74">Unity Catalog</text>
+      <text class="t" x="229" y="92">volume raw/</text>
+      <text class="s" x="229" y="114">prices · hydro ·</text>
+      <text class="s" x="229" y="130">reference</text>
+
+      <text class="tag" x="425" y="34">Bronze</text>
+      <rect class="box bronze" x="425" y="48" width="170" height="104" rx="10"/>
+      <text class="t" x="439" y="74">bronze_prices</text>
+      <text class="s" x="439" y="94">raw rows as delivered</text>
+      <text class="s" x="439" y="112">+ source file, load time</text>
+      <text class="s" x="439" y="130">128.0 M rows</text>
+
+      <text class="tag" x="660" y="34">Silver</text>
+      <rect class="box silver" x="660" y="48" width="175" height="104" rx="10"/>
+      <text class="t" x="674" y="74">silver_prices</text>
+      <text class="s" x="674" y="94">typed · validated</text>
+      <text class="s" x="674" y="112">de-duplicated · timestamps</text>
+      <text class="s" x="674" y="130">127.9 M rows</text>
+
+      <rect class="box" x="660" y="196" width="175" height="62" rx="10" style="stroke: rgba(230,103,103,.55)"/>
+      <text class="t" x="674" y="221">quarantine</text>
+      <text class="s" x="674" y="241">123,745 rows + rules broken</text>
+
+      <text class="tag" x="890" y="34">Gold</text>
+      <rect class="box gold" x="890" y="48" width="190" height="104" rx="10"/>
+      <text class="t" x="904" y="74">6 analysis tables</text>
+      <text class="s" x="904" y="94">daily · monthly · hourly</text>
+      <text class="s" x="904" y="112">price vs storage</text>
+      <text class="s" x="904" y="130">node premiums</text>
+      <rect class="box" x="890" y="196" width="190" height="62" rx="10"/>
+      <text class="t" x="904" y="221">AI/BI dashboard</text>
+      <text class="s" x="904" y="241">NZ Electricity Market</text>
+
+      <path class="edge" d="M185,100 H211" marker-end="url(#ah)"/>
+      <path class="edge" d="M350,100 H421" marker-end="url(#ah)"/>
+      <text class="lbl" x="355" y="90">Auto Loader</text>
+      <path class="edge" d="M595,100 H656" marker-end="url(#ah)"/>
+      <text class="lbl" x="606" y="90">MERGE</text>
+      <path class="edge edge-q" d="M747,152 V192" marker-end="url(#ah)"/>
+      <path class="edge" d="M835,100 H886" marker-end="url(#ah)"/>
+      <path class="edge" d="M985,152 V192" marker-end="url(#ah)"/>
+
+      <rect class="box" x="215" y="196" width="380" height="62" rx="10"/>
+      <text class="t" x="229" y="221">Job: bronze → silver → gold</text>
+      <text class="s" x="229" y="241">starts when a new file lands in raw/prices/</text>
+      <path class="edge" d="M282,152 V192" marker-start="url(#ah)" style="stroke-dasharray:4 3"/>
+      <text class="lbl" x="290" y="178">file-arrival trigger</text>
+
+      <rect class="box" x="20" y="196" width="165" height="62" rx="10"/>
+      <text class="t" x="34" y="221">GitHub repo</text>
+      <text class="s" x="34" y="241">tests run on every push</text>
+      <path class="edge" d="M185,227 H211" marker-end="url(#ah)"/>
+      <text class="lbl" x="34" y="290">Asset Bundle deploys the job as code</text>
+    </svg>
+    <figure class="fig" style="margin-top:18px"><div class="shot"><img src="img/job-run.webp" alt="Databricks job run with three green tasks: bronze 34 seconds, silver 52 seconds, gold 51 seconds, all on serverless compute" width="948" height="162" loading="lazy" decoding="async"></div><figcaption>A job run in my workspace. Auto Loader found no new files, so bronze and silver did no work, and gold rebuilt in under a minute.</figcaption></figure>
+  </section>
+
+  <div class="grid-2">
+    <section class="panel" aria-labelledby="eng-h">
+      <div class="panel-head"><div><h2 id="eng-h">Engineering choices</h2></div></div>
+      <ul class="note" style="margin:0; padding-left:18px; display:grid; gap:10px">
+        <li><strong>Incremental by design.</strong> Auto Loader remembers which files it has loaded, and silver only processes new bronze rows, merging them on date, period and node. Re-running is always safe, and a re-delivered file updates prices instead of duplicating them.</li>
+        <li><strong>Lineage on every row.</strong> Bronze keeps the source file and load time; Unity Catalog tracks how tables feed each other and the dashboard.</li>
+        <li><strong>Tested logic, thin notebooks.</strong> Transformations live in a Python package with pytest tests that run on GitHub Actions; the notebooks only call it. I ran the whole pipeline locally on open-source Spark and Delta Lake before it touched Databricks.</li>
+        <li><strong>Infrastructure as code.</strong> The job, its tasks and trigger are defined in a Databricks Asset Bundle and deployed from the repo.</li>
+      </ul>
+    </section>
+    <section class="panel" aria-labelledby="cat-h">
+      <div class="panel-head"><div><h2 id="cat-h">The tables</h2><p class="panel-sub">Thirteen Delta tables in Unity Catalog, plus the landing-zone volume.</p></div></div>
+      <figure class="fig tables-fig"><div class="shot"><img src="img/catalog.webp" alt="Databricks Catalog Explorer tree: the nz_electricity schema with its thirteen bronze, silver and gold tables and the raw volume" width="342" height="617" loading="lazy" decoding="async"></div><figcaption>The nz_electricity schema in Unity Catalog.</figcaption></figure>
+    </section>
+  </div>
+
+  <!-- ===================== DATA QUALITY ===================== -->
+  <section class="panel panel-flag" aria-labelledby="dq-h">
+    <div class="panel-head"><div>
+      <p class="flag-label">Data quality</p>
+      <h2 id="dq-h">What the checks caught</h2>
+      <p class="panel-sub">Every price row is tested against named rules. Failures aren't dropped: they go to a quarantine table with the rules they broke.</p>
+    </div></div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Data-quality rules"><table class="mini-table rules">
+      <thead><tr><th>Rule</th><th>What it catches</th><th class="num">Rows</th></tr></thead>
+      <tbody>
+        <tr><td><code>not_placeholder</code></td><td>Prices of exactly ±$100,000/MWh, filling whole days at 103 grid points between 1998 and 2006. They're placeholders, not prices, and would have wrecked every average.</td><td class="num">123,745</td></tr>
+        <tr><td><code>price_plausible</code></td><td>Anything outside −$10,000 to $50,000/MWh. Real prices peak at about $10,700 at the benchmark nodes.</td><td class="num">0</td></tr>
+        <tr><td><code>date_present</code>, <code>period_in_range</code>, <code>poc_format</code>, <code>price_present</code></td><td>Malformed rows. Casts use <code>try_cast</code>, so one bad value is quarantined instead of failing the whole job.</td><td class="num">0</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grid-2" style="margin-top:18px">
+      <p class="note"><strong>Daylight saving.</strong> A trading day has 48 half-hours, but 46 when clocks go forward and 50 when they go back. Periods are converted to real timestamps from local midnight in UTC, so the skipped and repeated hours land correctly; unit tests cover both days. A check after every run confirms every day has 46, 48 or 50 periods.</p>
+      <p class="note"><strong>Known gaps.</strong> The market's first week, 1–7 October 1996, is incomplete in the source and excluded from that check. Hydro storage in the published dataset ends in December 2024, so price-versus-storage comparisons stop there.</p>
+    </div>
+  </section>
+
+  <section class="method" aria-labelledby="method-h">
+    <h2 id="method-h">Data and tools</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Data</h3>
+        <p>The Electricity Authority's <a href="https://www.emi.ea.govt.nz/" target="_blank" rel="noreferrer">Electricity Market Information</a> open data: final energy prices by grid point, the Hydrological Modelling Dataset, and the network supply points table. The benchmark nodes are Otahuhu (Auckland) and Benmore (South Island).</p>
+      </div>
+      <div>
+        <h3>Platform</h3>
+        <p>Databricks Free Edition on serverless compute. Free workspaces can't download from the internet, so the raw files are uploaded to the landing-zone volume once; new months are picked up automatically after that.</p>
+      </div>
+      <div>
+        <h3>Built with</h3>
+        <div class="stack"><span>Databricks</span><span>PySpark</span><span>Delta Lake</span><span>Auto Loader</span><span>Unity Catalog</span><span>Asset Bundles</span><span>AI/BI dashboards</span><span>pytest</span><span>GitHub Actions</span></div>
+      </div>
+    </div>
+    <p class="source">Code, tests and the job definition: <a href="https://github.com/AmirmasoudGhorbani/nz-electricity-lakehouse" target="_blank" rel="noreferrer">github.com/AmirmasoudGhorbani/nz-electricity-lakehouse</a>.</p>
+  </section>
+
+</main>
+</body>
+</html>

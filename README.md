@@ -23,6 +23,7 @@ A single-page portfolio built with vanilla HTML, CSS and JavaScript, with no bui
 | Project | Description | Links |
 |---------|-------------|-------|
 | **AI Strawberry Disease Detection** | Master's thesis: hybrid YOLOv9 + DETR model for disease and ripeness detection, about 90% accuracy across 9,000+ images | [Repo](https://github.com/AmirmasoudGhorbani/hybrid-yolov9-detr-strawberry-disease) |
+| **NZ Electricity Lakehouse** | Databricks lakehouse for 128M half-hourly wholesale prices since 1996: bronze/silver/gold Delta tables, Auto Loader, data-quality rules, an automated job and a dashboard | [Case study](https://amirghorbani.dev/nz-electricity/) · [Repo](https://github.com/AmirmasoudGhorbani/nz-electricity-lakehouse) |
 | **NZ Rental Market Analysis** | 33 years of MBIE rental bond data modelled in SQL (DuckDB) and adjusted for inflation: rents have stalled and are falling in real terms | [Dashboard](https://amirghorbani.dev/nz-rental-market/dashboard/) · [Code](nz-rental-market/) |
 | **NZ Earthquake Analysis** | 175,000 GeoNet quakes modelled in SQL and Python, with declustering, aftershock-decay fits, a data-quality catch from 2012 and a live API feed | [Dashboard](https://amirghorbani.dev/nz-earthquakes/dashboard/) · [Code](nz-earthquakes/) |
 | **Scalable Rental Platform** | Interactive AWS architecture diagram with animated request tracing and Terraform IaC | [Live Demo](https://amirghorbani.dev/rental-platform-architecture/architecture/) · [Repo](https://github.com/AmirmasoudGhorbani/rental-platform-architecture) |
@@ -62,6 +63,7 @@ Portfolio/
 ├── images/                             # project screenshots (WebP + PNG), portrait, share image
 ├── nz-rental-market/                   # rental data analysis: SQL model, pipeline, dashboard
 ├── nz-earthquakes/                     # earthquake analysis: SQL model, pipeline, live dashboard
+├── nz-electricity/                     # case study page for the Databricks lakehouse
 ├── iot-weather-station/                # IoT dashboard (subpage)
 │   ├── dashboard/
 │   ├── firmware/
