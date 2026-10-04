@@ -26,6 +26,7 @@
     initGlowCards();
     initStagger(document.getElementById("work-grid"), "[data-card]", 90);
     initStagger(document.getElementById("more-grid"), "[data-card]", 70);
+    initProjectFilter();
     initStagger(document.getElementById("tech-wrap"), "[data-tech]", 45);
     initContactForm();
     initProjectImages();
@@ -36,6 +37,34 @@
       initBgParticles();
       initEmbers();
     }
+  }
+
+  /* ---------- Project filter tabs ---------- */
+  function initProjectFilter() {
+    const buttons = Array.from(document.querySelectorAll(".work-filter"));
+    if (!buttons.length) return;
+    const items = Array.from(document.querySelectorAll("[data-cats]"));
+    const featured = document.getElementById("work-grid");
+    const more = document.getElementById("more-grid");
+    const moreHead = document.querySelector(".more-head");
+    const status = document.getElementById("work-filter-status");
+    const apply = (filter) => {
+      let shown = 0;
+      items.forEach((el) => {
+        const match = filter === "all" || el.dataset.cats.split(" ").includes(filter);
+        el.hidden = !match;
+        if (match) { shown++; el.style.opacity = ""; el.style.transform = ""; }
+      });
+      const anyIn = (wrap) => wrap && Array.from(wrap.querySelectorAll("[data-cats]")).some((el) => !el.hidden);
+      if (featured) featured.hidden = !anyIn(featured);
+      if (more) more.hidden = !anyIn(more);
+      if (moreHead) moreHead.hidden = !anyIn(more) || !anyIn(featured);
+      if (status) status.textContent = "Showing " + shown + " project" + (shown === 1 ? "" : "s");
+    };
+    buttons.forEach((b) => b.addEventListener("click", () => {
+      buttons.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      apply(b.dataset.filter);
+    }));
   }
 
   /* ---------- Project images: fade in when ready, fetch early ---------- */
