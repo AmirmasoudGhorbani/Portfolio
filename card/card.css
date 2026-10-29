@@ -1,0 +1,34 @@
+:root{color-scheme:dark;--paper:#f3efe7;--muted:#9f998f;--orange:#ef5a1e}
+*{box-sizing:border-box}body{margin:0;background:#050505;color:var(--paper);font-family:Arial,Helvetica,sans-serif}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 35%,#ef5a1e0a,transparent 58%)}main{position:relative;max-width:1060px;margin:auto;padding:32px 40px 24px}a{color:inherit;text-decoration:none}button,a{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible{outline:2px solid #ff7d3a;outline-offset:5px}header{display:flex;align-items:center;justify-content:space-between}.wordmark{display:flex;align-items:center;gap:16px;font-size:26px;color:var(--orange)}.wordmark span,.edition,.overline,footer{font-size:10px;letter-spacing:2px}.wordmark span{color:var(--paper)}.edition{color:var(--muted)}.intro{text-align:center;margin:56px 0 16px}.overline{color:var(--orange)}h1{font-size:clamp(30px,4vw,46px);font-weight:400;letter-spacing:-1.5px;margin:16px 0 12px}.intro p{font-size:14px;color:var(--muted)}.stage{width:min(100%,620px);margin:28px auto 22px;perspective:1400px}.card{position:relative}.face{overflow:hidden;border-radius:12px;background:#111412;border:1px solid #ffffff15;box-shadow:0 25px 70px #0007}.face img{display:block;width:100%;height:auto}.back{margin-top:20px}.enhanced .stage{aspect-ratio:272.126/172.913;touch-action:pan-y;cursor:grab}.enhanced .stage.dragging{cursor:grabbing}.enhanced .card{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform 480ms cubic-bezier(.2,.7,.2,1)}.enhanced .dragging .card{transition:none}.enhanced .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 22px 65px #0006;transform:translateZ(1px)}.enhanced .back{margin:0;transform:rotateY(180deg) translateZ(1px)}.controls{display:flex;justify-content:center;gap:10px}button{font:inherit;font-size:12px;color:var(--paper);background:#ffffff05;border:1px solid #ffffff1f;border-radius:30px;padding:11px 18px;cursor:pointer}button:hover{border-color:#ef5a1e80}button span{margin-left:12px;color:var(--orange)}.hint{text-align:center;color:var(--muted);font-size:11px;margin:16px 0 34px}.connect{border-top:1px solid #ffffff14;padding:30px 0 38px;display:flex;justify-content:space-between;align-items:center;gap:24px}h2{font-size:19px;font-weight:400;margin:0 0 9px}.connect p{font-size:12px;margin:0;color:var(--muted)}.location{margin-top:8px!important;font-size:11px!important}nav{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;min-width:310px}nav a{border:1px solid #ffffff1f;border-radius:8px;padding:13px 16px;font-size:12px;display:flex;justify-content:space-between;gap:20px}nav a:hover{background:#ffffff08}nav .primary{background:var(--orange);color:#050505;border-color:transparent}footer{display:flex;justify-content:space-between;gap:18px;color:#7e8078;font-size:9px;letter-spacing:1px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.flat .card{transform:none!important}.flat .face{display:none}.flat .face.is-visible{display:block;transform:none}.flat .stage{cursor:default}
+@media(max-width:600px){main{padding:23px 22px}.edition{display:none}.intro{margin-top:40px}h1{margin-top:14px}.stage{margin:28px auto}.face{border-radius:8px}.connect{flex-direction:column;align-items:stretch;padding-top:24px;gap:24px}nav{min-width:0}.connect h2{font-size:21px}footer{flex-direction:column;gap:9px}.controls{gap:7px}button{padding:10px 13px;font-size:11px}.hint{margin-bottom:28px}}
+@media(prefers-reduced-motion:reduce){.enhanced .card{transition:none}}
+/* Printed stock: a fine cut edge, matte paper and a broad studio reflection. */
+.enhanced .stage{position:relative;margin-top:40px;margin-bottom:42px;isolation:isolate}
+.enhanced .stage::before{content:"";position:absolute;inset:8% 3%;border-radius:10px;background:#000;opacity:.65;filter:blur(24px);transform:translate(var(--shadow-x,10px),var(--shadow-y,25px)) scale(.97);transition:transform 480ms ease;pointer-events:none;z-index:-1}
+.enhanced .stage.dragging::before{transition:none}
+.enhanced .face{border-radius:5px;border:0;box-shadow:inset 0 0 0 1px #fff2;transform:translateZ(2px)}
+.enhanced .back{transform:rotateY(180deg) translateZ(2px)}
+.face img{filter:brightness(1.12);user-select:none;-webkit-user-select:none}
+.card-ply{position:absolute;inset:0;border-radius:5px;background:#34312b;border:1px solid #726453;transform:translateZ(var(--depth));pointer-events:none}
+.card-ply:nth-child(even){border-color:#403b33;background:#24251f}
+.face::before,.face::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit}
+.face::before{background:url('paper-grain.svg');opacity:.1;mix-blend-mode:soft-light}
+.face::after{background:radial-gradient(ellipse at var(--light-x,40%) var(--light-y,25%),#ffe8c416,transparent 65%),linear-gradient(125deg,#ffffff0b,transparent 35%,#00000014);box-shadow:inset 0 1px 0 #fff3,inset 1px 0 0 #ffffff15,inset 0 -1px 0 #000b}
+.flat .card-ply{display:none}.flat .face.is-visible{transform:none}.flat .stage::before{transform:translateY(12px);opacity:.4}.flat .face::after{background:none}
+@media(max-width:600px){.enhanced .stage{margin-top:32px;margin-bottom:32px}}
+@media(prefers-reduced-motion:reduce){.enhanced .stage::before{transition:none}}
+/* Real WebGL object; HTML artwork remains the accessible/static fallback. */
+.enhanced .stage{aspect-ratio:1.48;perspective:none;isolation:auto;max-width:680px;width:100%}
+.enhanced .stage::before{display:none}
+.three-ready #card{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden;clip-path:inset(50%);transform:none!important}
+.card-canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+.dragging .card-canvas{cursor:grabbing}.flat .card-canvas{display:none}
+.flat .stage{aspect-ratio:272.126/172.913;max-width:620px}.flat .face{box-shadow:0 20px 45px #0006}
+.flat .face::before,.flat .face::after{display:none}.flat .face img{filter:none}
+/* Override the renderer's inline canvas display when the user selects flat mode. */
+.flat .card-canvas{display:none!important}
+
+/* Shared portfolio branding, scoped to the digital card page. */
+.wordmark img{display:block;width:56px;height:41px;object-fit:contain;flex-shrink:0}
+.connect .phone{margin-top:12px;font-size:14px;color:var(--paper)}
+.phone a:hover{color:var(--orange)}

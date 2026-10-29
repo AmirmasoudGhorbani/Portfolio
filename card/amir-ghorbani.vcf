@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Ghorbani;Amir;;;
+FN:Amir Ghorbani
+TITLE:Software Developer
+TEL;TYPE=CELL,VOICE:+6421631023
+EMAIL;TYPE=INTERNET:amirmasoud.gh@hotmail.com
+URL:https://amirghorbani.dev/
+item1.URL:https://www.linkedin.com/in/amirgh1996linke/
+item1.X-ABLabel:LinkedIn
+NOTE:Software development - Data - Machine Learning - AI. Auckland\, New Zealand.
+END:VCARD
