@@ -32,3 +32,7 @@
 .wordmark img{display:block;width:56px;height:41px;object-fit:contain;flex-shrink:0}
 .connect .phone{margin-top:12px;font-size:14px;color:var(--paper)}
 .phone a:hover{color:var(--orange)}
+/* nav a:hover outweighs nav .primary, so the filled button needs its own
+   hover state or it drops to the faint tint with near-black text on it. */
+nav .primary:hover{background:#ff7d3a;color:#050505}
+
