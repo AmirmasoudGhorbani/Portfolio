@@ -3,3 +3,12 @@
 .idea/
 node_modules/
 *.log
+
+# Design sources — kept locally, never published from the Pages site
+*.ai
+
+# Tailored CVs and cover letters — local only. The published CV is
+# assets/Amir-Ghorbani-CV.pdf (hyphens), which these patterns do not match.
+/assets/Amir_Ghorbani_*.pdf
+/assets/*Cover_Letter*.pdf
+/assets/*cover-letter*.pdf
