@@ -5,6 +5,8 @@
   "use strict";
 
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const mobileEffects = window.matchMedia("(max-width: 760px), (pointer: coarse)").matches;
+  const effectFrameInterval = mobileEffects ? 1000 / 30 : 0;
   const rand = (a, b) => a + Math.random() * (b - a);
   let started = false;
 
@@ -78,12 +80,8 @@
       img.addEventListener("load", done, { once: true });
       img.addEventListener("error", done, { once: true });
     });
-    // once the page itself has loaded, fetch the project images in the
-    // background so they're usually ready before they scroll into view
-    const prefetch = () => imgs.forEach((img) => { img.loading = "eager"; });
-    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 600));
-    if (document.readyState === "complete") idle(prefetch);
-    else window.addEventListener("load", () => idle(prefetch), { once: true });
+    // Keep native lazy loading so off-screen project images do not
+    // compete with the initial page content for bandwidth.
   }
 
   /* ---------- Preview-sandbox asset token (no-op in production) ---------- */
@@ -169,6 +167,8 @@
 
   /* ---------- Cursor glow on cards + tech pills (eased, local coords) ---------- */
   function initGlowCards() {
+    // Touch devices have no cursor hover: avoid a continuous layout-reading loop.
+    if (reduced || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const pointer = { x: 0, y: 0, has: false };
     const state = new WeakMap();
     window.addEventListener("pointermove", (e) => {
@@ -355,9 +355,12 @@
     };
 
     let last = performance.now();
+    let lastPaint = 0;
     const tick = (now) => {
       requestAnimationFrame(tick);
       if (document.hidden) { last = now; return; }
+      if (effectFrameInterval && now - lastPaint < effectFrameInterval) return;
+      lastPaint = now;
       let dt = (now - last) / 16.67; last = now;
       if (dt > 2.5) dt = 2.5; if (dt <= 0) dt = 1;
 
@@ -574,9 +577,12 @@
     }
 
     let prevX = NaN, prevY = NaN, prevW = 0, prevH = 0;
+    let lastPortraitFrame = 0;
     function tick(now) {
       requestAnimationFrame(tick);
       if (document.hidden || !visible) return;
+      if (effectFrameInterval && now - lastPortraitFrame < effectFrameInterval) return;
+      lastPortraitFrame = now;
       // after a few idle seconds the light drifts slowly, like a passing flame
       if (now - last > 3500) {
         const t = now / 1000;
@@ -651,7 +657,7 @@
     const uMouse = gl.getUniformLocation(prog, "uMouse");
     const uHover = gl.getUniformLocation(prog, "uHover");
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = mobileEffects ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
     const resize = () => {
       const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
@@ -669,9 +675,12 @@
     }, { passive: true });
 
     const t0 = performance.now();
+    let lastNoiseFrame = 0;
     const render = (now) => {
       requestAnimationFrame(render);
       if (document.hidden) return;
+      if (effectFrameInterval && now - lastNoiseFrame < effectFrameInterval) return;
+      lastNoiseFrame = now;
       mouse.x += (mouse.tx - mouse.x) * 0.10;
       mouse.y += (mouse.ty - mouse.y) * 0.10;
       const hvT = (now - mouse.last < 420) ? 1 : 0;
@@ -715,9 +724,12 @@
 
     const LINK = 124, LINK2 = LINK * LINK;
     let last = performance.now();
+    let lastPaint = 0;
     const tick = (now) => {
       requestAnimationFrame(tick);
       if (document.hidden) { last = now; return; }
+      if (effectFrameInterval && now - lastPaint < effectFrameInterval) return;
+      lastPaint = now;
       let dt = (now - last) / 16.67; last = now; if (dt > 3) dt = 3; if (dt <= 0) dt = 1;
 
       ry += 0.0015 * dt;
