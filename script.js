@@ -7,6 +7,13 @@
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mobileEffects = window.matchMedia("(max-width: 760px), (pointer: coarse)").matches;
   const effectFrameInterval = mobileEffects ? 1000 / 30 : 0;
+
+  // Local/private-network only: selectively disable visual effects for profiling.
+  // Usage: ?perf-off=network,noise,embers,portrait (one or more names).
+  const isLocalPreview = /^(?:localhost$|127\.0\.0\.1$|\[?::1\]?$|10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+  const perfOff = new Set(isLocalPreview
+    ? (new URLSearchParams(location.search).get("perf-off") || "").split(",")
+    : []);
   const rand = (a, b) => a + Math.random() * (b - a);
   let started = false;
 
@@ -32,12 +39,12 @@
     initStagger(document.getElementById("tech-wrap"), "[data-tech]", 45);
     initContactForm();
     initProjectImages();
-    initPortraitLight();
+    if (!perfOff.has("portrait")) initPortraitLight();
 
     if (!reduced) {
-      initNeuralNoise();
-      initBgParticles();
-      initEmbers();
+      if (!perfOff.has("noise")) initNeuralNoise();
+      if (!perfOff.has("network")) initBgParticles();
+      if (!perfOff.has("embers")) initEmbers();
     }
   }
 
@@ -86,12 +93,15 @@
 
   /* ---------- Preview-sandbox asset token (no-op in production) ---------- */
   function forwardPreviewToken() {
-    const qs = location.search;
+    const params = new URLSearchParams(location.search);
+    // A benchmark switch must not change asset URLs or their cache keys.
+    params.delete("perf-off");
+    const qs = params.toString();
     if (!qs) return;
     document.querySelectorAll('img[src^="./"], img[src^="images/"], a[href$=".pdf"]').forEach((el) => {
       const attr = el.tagName === "IMG" ? "src" : "href";
       const v = el.getAttribute(attr);
-      if (v && v.indexOf("?") === -1) el.setAttribute(attr, v + qs);
+      if (v && v.indexOf("?") === -1) el.setAttribute(attr, v + "?" + qs);
     });
   }
 
@@ -661,11 +671,19 @@
     const resize = () => {
       const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
     };
     resize();
-    window.addEventListener("resize", resize, { passive: true });
+    // Read canvas dimensions only on CSS size changes, not every frame.
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(resize).observe(canvas);
+    } else {
+      window.addEventListener("resize", resize, { passive: true });
+    }
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0, hv: 0, last: -1e9 };
     window.addEventListener("pointermove", (e) => {
@@ -685,7 +703,6 @@
       mouse.y += (mouse.ty - mouse.y) * 0.10;
       const hvT = (now - mouse.last < 420) ? 1 : 0;
       mouse.hv += (hvT - mouse.hv) * (hvT > mouse.hv ? 0.12 : 0.045);
-      resize();
       gl.uniform2f(uRes, canvas.width, canvas.height);
       gl.uniform1f(uTime, (now - t0) / 1000);
       gl.uniform2f(uMouse, mouse.x, mouse.y);
@@ -758,14 +775,19 @@
         const a = proj[i];
         for (let j = i + 1; j < N; j++) {
           const b = proj[j];
-          const dx = a.sx - b.sx, dy = a.sy - b.sy, d2 = dx * dx + dy * dy;
-          if (d2 < LINK2) {
-            const al = (1 - Math.sqrt(d2) / LINK) * 0.085 * Math.min(a.f, b.f);
-            if (al > 0.004) {
-              ctx.strokeStyle = "rgba(238,118,58," + al.toFixed(3) + ")";
-              ctx.lineWidth = 1;
-              ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
-            }
+          // Reject pairs outside the radius bounding box before distance math.
+          // This preserves all existing connections and their drawing order.
+          const dx = a.sx - b.sx;
+          if (dx <= -LINK || dx >= LINK) continue;
+          const dy = a.sy - b.sy;
+          if (dy <= -LINK || dy >= LINK) continue;
+          const d2 = dx * dx + dy * dy;
+          if (d2 >= LINK2) continue;
+          const al = (1 - Math.sqrt(d2) / LINK) * 0.085 * Math.min(a.f, b.f);
+          if (al > 0.004) {
+            ctx.strokeStyle = "rgba(238,118,58," + al.toFixed(3) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
           }
         }
       }
