@@ -1,13 +1,38 @@
 (async()=>{
 'use strict';
+// Camera and card geometry are shared by the renderer and by the still artwork shown
+// while three.js loads, so the placeholder occupies exactly the box the 3D card
+// settles into and the card does not visibly shrink when WebGL takes over.
+const CARD_W=4.8,CARD_H=CARD_W*172.913/272.126,CARD_T=.025,CARD_BLEED=.008,FOV=33,FIT_MARGIN=1.04;
+// Fit the entire rotation envelope, including corners that move toward the camera.
+// Fitting only the flat face clips the nearer edge against the canvas when turned.
+function fitDistance(aspect){
+ const tanV=Math.tan(FOV*Math.PI/360);
+ const radius=Math.hypot(CARD_W/2+CARD_BLEED,CARD_H/2+CARD_BLEED,CARD_T);
+ // YXZ rotation keeps vertical extent within the short edge's radius.
+ const maxY=Math.hypot(CARD_H/2+CARD_BLEED,CARD_T);
+ const verticalFit=Math.sqrt(radius*radius-maxY*maxY)+maxY/tanV;
+ const horizontalFit=radius/Math.sin(Math.atan(tanV*aspect));
+ return Math.max(verticalFit,horizontalFit)*FIT_MARGIN;
+}
+// Fraction of the stage width the resting card covers once the renderer frames it.
+function restFillWidth(aspect){
+ const tanV=Math.tan(FOV*Math.PI/360);
+ return CARD_W/(2*(fitDistance(aspect)-CARD_T)*tanV*aspect);
+}
+const root=document.documentElement;
 const stage=document.querySelector('#stage'), card=document.querySelector('#card');
 const flip=document.querySelector('#flip'),reset=document.querySelector('#reset'),flatButton=document.querySelector('#flat'),status=document.querySelector('#status'),hint=document.querySelector('#hint');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
 let flat=motion.matches,back=false,engine=null,loading=null,failed=false;
-document.body.classList.add('enhanced','flat');
+// The inline head script normally sets these before first paint; repeat them
+// here so the card still works if that script was blocked.
+root.classList.add('enhanced','flat');
 [flip,reset,flatButton].forEach(b=>b.hidden=false);
 function sync(){
- document.body.classList.toggle('flat',flat||!engine);document.body.classList.toggle('three-ready',!!engine&&!flat);
+ root.classList.toggle('flat',flat||!engine);root.classList.toggle('three-ready',!!engine&&!flat);
+ const booting=!engine&&!failed&&!flat;root.classList.toggle('booting',booting);
+ if(booting){const b=stage.getBoundingClientRect();if(b.width&&b.height)stage.style.setProperty('--rest-fill',(restFillWidth(b.width/b.height)*100).toFixed(3)+'%');}
  for(const side of ['front','back']){const visible=side===(back?'back':'front');const el=card.querySelector('.'+side);el.classList.toggle('is-visible',visible);el.setAttribute('aria-hidden',String(!visible));}
  flip.firstChild.textContent=back?'Show front ':'Flip card ';flatButton.setAttribute('aria-pressed',String(flat||!engine));
  hint.textContent=failed?'3D unavailable · both sides are available in flat view.':flat?'Flat view · use Flip card to see the other side.':engine?'Drag and release · turn to explore · double-tap to reset':'Preparing your card…';
@@ -29,12 +54,12 @@ async function build(){
  const [frontMap,backMap,grain]=textures;
  [frontMap,backMap].forEach(t=>{t.colorSpace=T.SRGBColorSpace;t.anisotropy=renderer.capabilities.getMaxAnisotropy();});
  grain.wrapS=grain.wrapT=T.RepeatWrapping;grain.repeat.set(7,4);
- const scene=new T.Scene(),camera=new T.PerspectiveCamera(33,1,.1,50);camera.position.z=6.2;
+ const scene=new T.Scene(),camera=new T.PerspectiveCamera(FOV,1,.1,50);camera.position.z=6.2;
  scene.add(new T.HemisphereLight(0xffffff,0x888888,1.8));
  const light=new T.DirectionalLight(0xffffff,1.5);light.position.set(-4,6,7);scene.add(light);
  const rim=new T.DirectionalLight(0xe4e9ed,1.8);rim.position.set(4,2,-4);scene.add(rim);
  const group=new T.Group();scene.add(group);
- const w=4.8,h=w*172.913/272.126,r=.035;
+ const w=CARD_W,h=CARD_H,r=.035;
  function outline(){const s=new T.Shape();s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);return s;}
  const coreGeo=new T.ExtrudeGeometry(outline(),{depth:.035,bevelEnabled:true,bevelSize:.008,bevelThickness:.006,bevelSegments:2,steps:1,curveSegments:8});coreGeo.translate(0,0,-.0175);
  const core=new T.Mesh(coreGeo,new T.MeshStandardMaterial({color:0x363936,roughness:.85}));group.add(core);
@@ -56,16 +81,7 @@ async function build(){
  function resize(){
   const b=stage.getBoundingClientRect();if(!b.width||!b.height)return;
   renderer.setSize(b.width,b.height,false);camera.aspect=b.width/b.height;
-  // Fit the entire rotation envelope, including corners that move toward the camera.
-  // Fitting only the flat face clips the nearer edge against the canvas when turned.
-  const radius=Math.hypot(w/2+.008,h/2+.008,.025);
-  const verticalHalfFov=T.MathUtils.degToRad(camera.fov/2);
-  const horizontalHalfFov=Math.atan(Math.tan(verticalHalfFov)*camera.aspect);
-  // YXZ rotation keeps vertical extent within the short edge's radius.
-  const maxY=Math.hypot(h/2+.008,.025);
-  const verticalFit=Math.sqrt(radius*radius-maxY*maxY)+maxY/Math.tan(verticalHalfFov);
-  const horizontalFit=radius/Math.sin(horizontalHalfFov);
-  camera.position.z=Math.max(verticalFit,horizontalFit)*1.04;
+  camera.position.z=fitDistance(camera.aspect);
   camera.updateProjectionMatrix();draw();
  }
  const observer=new ResizeObserver(resize);observer.observe(stage);

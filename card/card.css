@@ -36,3 +36,26 @@
    hover state or it drops to the faint tint with near-black text on it. */
 nav .primary:hover{background:#ff7d3a;color:#050505}
 
+
+/* While three.js loads, the still artwork stands in for the 3D card. The renderer
+   frames the card's whole rotation envelope, so at rest the card covers only part
+   of the stage; sizing the placeholder to that same fraction (--rest-fill, measured
+   by card.js from the shared camera math) keeps the card from shrinking the moment
+   WebGL takes over. */
+.booting .stage{aspect-ratio:1.48;max-width:680px;width:100%}
+.booting .card{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.booting .face{position:relative;inset:auto;width:var(--rest-fill,69.63%);height:auto;transform:none;border-radius:5px}
+.booting .face img{filter:brightness(1.12)}
+
+/* U+2197 carries an emoji presentation, so phones resolve it through the colour
+   emoji font and the arrow stops matching the desktop glyph. VS15 in the markup
+   pins it to text; this covers the other arrows and any browser that ignores it. */
+nav a span,button span{font-variant-emoji:text}
+
+/* The controls are hidden in markup because they do nothing without JS, and
+   card.js reveals them once its listeners are attached. Left at display:none
+   the row has no height, so the hint, contact block and footer all jump down
+   when they appear. Keep the boxes in flow and merely invisible, which holds
+   the space at every breakpoint without hard-coding a height. Scoped to
+   .enhanced so a browser without JS still collapses the row entirely. */
+.enhanced .controls button[hidden]{display:block;visibility:hidden}

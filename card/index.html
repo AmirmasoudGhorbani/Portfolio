@@ -10,7 +10,13 @@
 <meta property="og:url" content="https://amirghorbani.dev/card/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://amirghorbani.dev/card/front.webp">
-<title>Amir Ghorbani · Digital card</title><link rel="icon" href="../assets/ag-logo-112.png" type="image/png"><link rel="stylesheet" href="card.css?v=brand7">
+<title>Amir Ghorbani · Digital card</title>
+<script>/* Set the card's layout state before the first paint, so the artwork is
+   never shown at one size and then resized once card.js arrives. Mirrors the
+   opening state in card.js; without JS none of this applies and both faces
+   stack at full width. */
+document.documentElement.className=matchMedia('(prefers-reduced-motion: reduce)').matches?'enhanced flat':'enhanced flat booting';</script>
+<link rel="icon" href="../assets/ag-logo-112.png" type="image/png"><link rel="stylesheet" href="card.css?v=brand10">
 </head>
 <body>
 <main>
@@ -19,7 +25,7 @@
 <div class="intro"><span class="overline">A SMALL INTRODUCTION</span><h1>Good to meet you.</h1><p>Software foundation. Data-driven thinking.</p></div>
 <div class="stage" id="stage">
 <div class="card" id="card">
-<div class="face front"><img src="front.webp?v=print2" width="1600" height="1017" alt="Amir Ghorbani. Software Developer. Custom Websites, UI/UX Design, Website Redesign." fetchpriority="high" draggable="false"></div>
+<div class="face front is-visible"><img src="front.webp?v=print2" width="1600" height="1017" alt="Amir Ghorbani. Software Developer. Custom Websites, UI/UX Design, Website Redesign." fetchpriority="high" draggable="false"></div>
 <div class="face back"><img src="back.webp?v=print2" width="1600" height="1017" alt="Back of Amir's business card: QR code and Design. Build. Elevate." draggable="false"></div>
 </div>
 </div>
@@ -28,8 +34,8 @@
 </section>
 <section class="connect" aria-label="Contact Amir">
 <div><h2>Amir Ghorbani</h2><p>Software Developer <span>· Data · ML · AI</span></p><p class="location">Auckland, New Zealand</p><p class="phone"><a href="tel:+6421631023" aria-label="Call Amir on 021 631 023">021 631 023</a></p></div>
-<nav aria-label="Contact links"><a class="primary" href="amir-ghorbani.vcf?v=linkedin1" download>Save contact <span aria-hidden="true">↓</span></a><a href="mailto:amirmasoud.gh@hotmail.com">Email <span aria-hidden="true">↗</span></a><a href="https://www.linkedin.com/in/amirgh1996linke/" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a><a href="../">Portfolio <span aria-hidden="true">↗</span></a></nav>
+<nav aria-label="Contact links"><a class="primary" href="amir-ghorbani.vcf?v=linkedin1" download>Save contact <span aria-hidden="true">↓</span></a><a href="mailto:amirmasoud.gh@hotmail.com">Email <span aria-hidden="true">↗&#xFE0E;</span></a><a href="https://www.linkedin.com/in/amirgh1996linke/" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗&#xFE0E;</span></a><a href="../">Portfolio <span aria-hidden="true">↗&#xFE0E;</span></a></nav>
 </section>
 <footer><span>DESIGNED BY AMIR</span><span>A little less paper. A little more possibility.</span></footer>
-</main><script src="card.js?v=rotation4" defer></script>
+</main><script src="card.js?v=fit2" defer></script>
 </body></html>
