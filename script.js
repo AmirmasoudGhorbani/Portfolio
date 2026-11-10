@@ -7,9 +7,16 @@
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mobileEffects = window.matchMedia("(max-width: 760px), (pointer: coarse)").matches;
   const effectFrameInterval = mobileEffects ? 1000 / 30 : 0;
+  // Mobile address bars slide in and out as you scroll, firing resize and moving
+  // the viewport height by roughly their own height. Assigning canvas.width wipes
+  // the buffer even when the value is unchanged, and these loops only repaint at
+  // 30fps on mobile, so acting on every event leaves the background blank for up
+  // to a frame and reads as a flash. Treat height-only moves below this as address
+  // bar travel rather than a real resize.
+  const URL_BAR_SLACK = 160;
 
   // Local/private-network only: selectively disable visual effects for profiling.
-  // Usage: ?perf-off=network,noise,embers,portrait (one or more names).
+  // Usage: ?perf-off=noise,embers,portrait (one or more names).
   const isLocalPreview = /^(?:localhost$|127\.0\.0\.1$|\[?::1\]?$|10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(location.hostname);
   const perfOff = new Set(isLocalPreview
     ? (new URLSearchParams(location.search).get("perf-off") || "").split(",")
@@ -43,7 +50,6 @@
 
     if (!reduced) {
       if (!perfOff.has("noise")) initNeuralNoise();
-      if (!perfOff.has("network")) initBgParticles();
       if (!perfOff.has("embers")) initEmbers();
     }
   }
@@ -324,9 +330,14 @@
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let W = 0, H = 0;
+    let W = 0, H = 0, sizedW = 0, sizedH = 0;
     const resize = () => {
       const r = canvas.getBoundingClientRect();
+      // Keep the existing buffer through address bar travel. The canvas is
+      // stretched to fit by CSS, and a few per cent of vertical scale on soft
+      // particles is invisible where a blank frame is not.
+      if (r.width === sizedW && Math.abs(r.height - sizedH) < URL_BAR_SLACK) return;
+      sizedW = r.width; sizedH = r.height;
       W = r.width; H = r.height;
       canvas.width = Math.max(1, Math.round(W * dpr));
       canvas.height = Math.max(1, Math.round(H * dpr));
@@ -668,9 +679,14 @@
     const uHover = gl.getUniformLocation(prog, "uHover");
 
     const dpr = mobileEffects ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+    let sizedW = 0, sizedH = 0;
     const resize = () => {
       const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
       const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+      // Same address bar guard as the embers; the field is full-screen noise, so
+      // the slight stretch costs nothing and the reallocation is what flashes.
+      if (w === sizedW && Math.abs(h - sizedH) < URL_BAR_SLACK * dpr) return;
+      sizedW = w; sizedH = h;
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -710,98 +726,5 @@
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
     requestAnimationFrame(render);
-  }
-
-  /* ---------- Site-wide 3D particle network ---------- */
-  function initBgParticles() {
-    const canvas = document.getElementById("bg-network");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let W = 0, H = 0;
-    const resize = () => {
-      W = window.innerWidth; H = window.innerHeight;
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-
-    const N = W < 760 ? 46 : 88;
-    const pts = [];
-    for (let i = 0; i < N; i++) pts.push({ x: rand(-1, 1), y: rand(-1, 1), z: rand(-1, 1), ember: Math.random() < 0.34, tw: rand(0, 6.28), drift: rand(-0.04, 0.04) });
-
-    const cam = 3.5;
-    let ry = 0, rx = 0;
-    const target = { mx: 0, my: 0 };
-    window.addEventListener("pointermove", (e) => {
-      target.mx = (e.clientX / window.innerWidth - 0.5);
-      target.my = (e.clientY / window.innerHeight - 0.5);
-    }, { passive: true });
-
-    const LINK = 124, LINK2 = LINK * LINK;
-    let last = performance.now();
-    let lastPaint = 0;
-    const tick = (now) => {
-      requestAnimationFrame(tick);
-      if (document.hidden) { last = now; return; }
-      if (effectFrameInterval && now - lastPaint < effectFrameInterval) return;
-      lastPaint = now;
-      let dt = (now - last) / 16.67; last = now; if (dt > 3) dt = 3; if (dt <= 0) dt = 1;
-
-      ry += 0.0015 * dt;
-      rx += ((target.my * 0.45) - rx) * 0.035 * dt;
-      const ay = ry + target.mx * 0.6;
-      const cY = Math.cos(ay), sY = Math.sin(ay), cX = Math.cos(rx), sX = Math.sin(rx);
-      const S = Math.min(W, H) * 0.7;
-      const cx = W / 2, cy = H / 2;
-
-      const proj = new Array(N);
-      for (let i = 0; i < N; i++) {
-        const p = pts[i];
-        p.y += p.drift * 0.01 * dt;
-        if (p.y > 1) p.y = -1; else if (p.y < -1) p.y = 1;
-        const x1 = p.x * cY - p.z * sY;
-        const z1 = p.x * sY + p.z * cY;
-        const y2 = p.y * cX - z1 * sX;
-        const z2 = p.y * sX + z1 * cX;
-        const f = cam / (cam + z2);
-        proj[i] = { sx: cx + x1 * f * S, sy: cy + y2 * f * S, f, ember: p.ember, p };
-      }
-
-      ctx.clearRect(0, 0, W, H);
-      ctx.globalCompositeOperation = "source-over";
-      for (let i = 0; i < N; i++) {
-        const a = proj[i];
-        for (let j = i + 1; j < N; j++) {
-          const b = proj[j];
-          // Reject pairs outside the radius bounding box before distance math.
-          // This preserves all existing connections and their drawing order.
-          const dx = a.sx - b.sx;
-          if (dx <= -LINK || dx >= LINK) continue;
-          const dy = a.sy - b.sy;
-          if (dy <= -LINK || dy >= LINK) continue;
-          const d2 = dx * dx + dy * dy;
-          if (d2 >= LINK2) continue;
-          const al = (1 - Math.sqrt(d2) / LINK) * 0.085 * Math.min(a.f, b.f);
-          if (al > 0.004) {
-            ctx.strokeStyle = "rgba(238,118,58," + al.toFixed(3) + ")";
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy); ctx.stroke();
-          }
-        }
-      }
-      for (let i = 0; i < N; i++) {
-        const a = proj[i];
-        a.p.tw += 0.028 * dt;
-        const r = Math.max(0.4, a.f * 1.7);
-        const depth = Math.max(0, Math.min(0.72, (a.f - 0.55) * 1.25));
-        const al = depth * (0.7 + Math.sin(a.p.tw) * 0.3);
-        ctx.beginPath();
-        ctx.fillStyle = a.ember ? "rgba(255,132,58," + al.toFixed(3) + ")" : "rgba(172,162,150," + (al * 0.66).toFixed(3) + ")";
-        ctx.arc(a.sx, a.sy, r, 0, 6.2832); ctx.fill();
-      }
-    };
-    requestAnimationFrame(tick);
   }
 })();

@@ -7,8 +7,8 @@ node_modules/
 # Design sources — kept locally, never published from the Pages site
 *.ai
 
-# Tailored CVs and cover letters — local only. The published CV is
-# assets/Amir-Ghorbani-CV.pdf (hyphens), which these patterns do not match.
+# Tailored CVs and cover letters — local only. The site no longer publishes
+# a CV at all; these patterns keep working copies out of the repo.
 /assets/Amir_Ghorbani_*.pdf
 /assets/*Cover_Letter*.pdf
 /assets/*cover-letter*.pdf

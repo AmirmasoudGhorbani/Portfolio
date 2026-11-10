@@ -58,8 +58,7 @@ Portfolio/
 ├── site.webmanifest
 ├── CNAME
 ├── assets/
-│   ├── ag-logo-*, icon-*.png           # logo and app icons
-│   └── Amir-Ghorbani-CV.pdf            # downloadable CV
+│   └── ag-logo-*, icon-*.png           # logo and app icons
 ├── images/                             # project screenshots (WebP + PNG), portrait, share image
 ├── nz-rental-market/                   # rental data analysis: SQL model, pipeline, dashboard
 ├── nz-earthquakes/                     # earthquake analysis: SQL model, pipeline, live dashboard
