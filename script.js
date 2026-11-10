@@ -329,7 +329,9 @@
     const canvas = document.getElementById("bg-embers");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // A phone was filling a 2x buffer here while the noise field already dropped
+    // to 1x, so this layer carried four times the pixels of the one behind it.
+    const dpr = mobileEffects ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     let W = 0, H = 0, sizedW = 0, sizedH = 0;
     const resize = () => {
       const r = canvas.getBoundingClientRect();
@@ -364,14 +366,16 @@
     const smokeSprite = makeSprite("120,112,108", 0);
 
     const embers = [], smoke = [];
+    const maxEmbers = mobileEffects ? 70 : 150;
+    const maxSmoke = mobileEffects ? 30 : 70;
     const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, active: false };
 
     const addEmber = (x, y, boost) => {
-      if (embers.length > 150) return;
+      if (embers.length > maxEmbers) return;
       embers.push({ x, y, vx: rand(-0.16, 0.16), vy: rand(-1.15, -0.5) * (boost || 1), life: 0, max: rand(130, 240), size: rand(1.2, 2.9), ph: rand(0, 6.28), hot: Math.random() < 0.28 });
     };
     const addSmoke = (x, y) => {
-      if (smoke.length > 70) return;
+      if (smoke.length > maxSmoke) return;
       smoke.push({ x, y, vx: rand(-0.12, 0.12), vy: rand(-0.45, -0.18), life: 0, max: rand(120, 220), size: rand(10, 24) });
     };
 
@@ -385,7 +389,7 @@
       let dt = (now - last) / 16.67; last = now;
       if (dt > 2.5) dt = 2.5; if (dt <= 0) dt = 1;
 
-      let emit = (W > 760 ? 0.8 : 0.55) * dt;
+      let emit = (W > 760 ? 0.8 : 0.3) * dt;
       while (emit > 0) { if (emit >= 1 || Math.random() < emit) addEmber(rand(0, W), H + rand(0, 14)); emit -= 1; }
 
       if (mouse.active) {
