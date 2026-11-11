@@ -121,6 +121,7 @@ main { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   [data-hero], [data-reveal] { animation: none !important; opacity: 1 !important; transform: none !important; }
   .ignite { animation: none; }
+}
 
 /* ---------- Buttons ---------- */
 .btn {
