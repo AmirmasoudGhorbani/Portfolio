@@ -701,6 +701,15 @@ main { position: relative; z-index: 1; }
 .footer-top-link { font-size: 13px; font-weight: 600; color: var(--muted); transition: color .25s ease; }
 .footer-top-link:hover { color: var(--accent-light); }
 
+/* Phones and small tablets: name and blurb across the top, the two short link
+   lists side by side beneath, and the tomb (added by persian.js) underneath
+   those. Stacked in one column, the footer ran taller than a phone screen.
+   760px matches the tomb's own mobile rule in persian.css. */
+@media (max-width: 760px) {
+  .footer-top { grid-template-columns: 1fr 1fr; column-gap: 20px; }
+  .footer-brand, .footer-tomb { grid-column: 1 / -1; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 819px) {
   .nav-capsule { display: none; }
