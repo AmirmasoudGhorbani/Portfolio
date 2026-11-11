@@ -569,6 +569,23 @@ main { position: relative; z-index: 1; }
 .about-text { font-size: 17px; line-height: 1.75; color: var(--muted); margin: 0 0 18px; }
 .about-text + .about-text { margin-bottom: 30px; }
 .about-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* About paragraphs decode into place as they scroll into view (initDecode in
+   script.js). Each letter keeps its real width throughout: a scrambling letter
+   turns transparent and its stand-in glyph is drawn over the same slot, so the
+   proportional text never reflows or rewraps while the effect sweeps across. */
+.decode-c { opacity: 0; }
+.decode-c.is-on { opacity: 1; }
+.decode-c.is-scramble { opacity: 1; position: relative; color: transparent; }
+.decode-c.is-scramble::after {
+  content: attr(data-g);
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  color: var(--accent);
+  pointer-events: none;
+}
 .fact-list { display: flex; flex-direction: column; gap: 14px; }
 .fact { display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: 14px; border: 1px solid rgba(255,255,255,.07); background: var(--surface); }
 .fact-bullet { width: 10px; height: 10px; flex-shrink: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(239,90,30,.12); }

@@ -39,6 +39,7 @@
     initSmoothNav();
     initMobileNav();
     initReveal();
+    initDecode();
     initGlowCards();
     initStagger(document.getElementById("work-grid"), "[data-card]", 90);
     initStagger(document.getElementById("more-grid"), "[data-card]", 70);
@@ -179,6 +180,91 @@
       });
     }, { threshold: 0.12, rootMargin: "0px 0px -7% 0px" });
     els.forEach((el) => io.observe(el));
+  }
+
+  /* ---------- About paragraphs: decode into place on scroll ---------- */
+  // Each paragraph is split into one span per character. A short band of
+  // scrambled glyphs runs ahead of the settled text, left to right, once, when
+  // the paragraph is half in view; the second waits for the first to finish.
+  // Screen readers get an untouched copy of the text and never hear the spans.
+  // Without IntersectionObserver, or with reduced motion, nothing is split.
+  function initDecode() {
+    const paras = Array.from(document.querySelectorAll(".about-text"));
+    if (!paras.length || reduced || !("IntersectionObserver" in window)) return;
+    const GLYPHS = "01<>/{}[]#$%&*+=?";
+    const RATE = 170;   // characters settled per second
+    const FRONT = 14;   // characters scrambling ahead of the settled text
+
+    const jobs = paras.map((p, index) => {
+      const chars = [];
+      const split = (from, into) => {
+        for (const node of Array.from(from.childNodes)) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            for (const ch of node.textContent) {
+              const span = document.createElement("span");
+              span.className = "decode-c";
+              span.textContent = ch;
+              into.appendChild(span);
+              chars.push(span);
+            }
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const copy = node.cloneNode(false);   // keeps .text-bright highlights
+            into.appendChild(copy);
+            split(node, copy);
+          }
+        }
+      };
+      const spoken = document.createElement("span");
+      spoken.className = "sr-only";
+      spoken.textContent = p.textContent;
+      const shown = document.createElement("span");
+      shown.setAttribute("aria-hidden", "true");
+      split(p, shown);
+      p.replaceChildren(spoken, shown);
+      return { p, chars, index };
+    });
+
+    const play = (job, done) => {
+      const { chars } = job;
+      const t0 = performance.now();
+      let settled = 0;
+      const tick = (now) => {
+        const target = Math.min(chars.length, Math.floor((now - t0) / 1000 * RATE));
+        while (settled < target) {
+          const c = chars[settled++];
+          c.classList.remove("is-scramble");
+          c.classList.add("is-on");
+        }
+        const end = Math.min(chars.length, settled + FRONT);
+        for (let k = settled; k < end; k++) {
+          const c = chars[k];
+          if (!c.textContent.trim()) continue;   // spaces stay blank
+          c.dataset.g = GLYPHS[(Math.random() * GLYPHS.length) | 0];
+          c.classList.add("is-scramble");
+        }
+        if (settled < chars.length) requestAnimationFrame(tick);
+        else done();
+      };
+      requestAnimationFrame(tick);
+    };
+
+    const queue = [];
+    let running = false;
+    const next = () => {
+      if (running || !queue.length) return;
+      running = true;
+      play(queue.shift(), () => { running = false; next(); });
+    };
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        queue.push(jobs.find((job) => job.p === e.target));
+      });
+      queue.sort((a, b) => a.index - b.index);   // always top paragraph first
+      next();
+    }, { threshold: 0.5 });
+    jobs.forEach((job) => io.observe(job.p));
   }
 
   /* ---------- Cursor glow on cards + tech pills (eased, local coords) ---------- */
